@@ -643,7 +643,7 @@ async def roulette(message: types.Message):
         if not last_global_timestamp:
             dbCDRoulette.insert({'ts': int(time.time())})
         else:
-            print(str(last_global_timestamp))
+            logger.info(str(last_global_timestamp))
             diff = now_ts - last_global_timestamp[0]['ts']
             logger.info('roulette: global time diff:'f"{diff=}")
             if diff >= 10:
@@ -1298,7 +1298,7 @@ async def top10(message: types.Message):
                 lines = sorted(jsonStrings, key=lambda k: k['points'], reverse=True)
                 index = 0
                 for record in lines:
-                    print(str(index))
+                    logger.info(str(index))
                     if index == 10:
                         break
                     logger.info("Top 10, element: " + str(record))
@@ -1479,12 +1479,15 @@ duel_first_user_message : types.Message
 duel_second_user_message : types.Message
 duel_roll_started = False
 duel_wait_another_message : types.Message
+duel_wait_another_sticker : types.Message
 duel_points: int
+
 
 @dp.message_handler(commands=['duel', 'd'])
 async def duel(message: types.Message):
     logger.info("duel request")
-    global duel_is_started, duel_points, duel_first_user_message, duel_second_user_message, duel_wait_another_message, duel_roll_started
+    global duel_is_started, duel_points, duel_first_user_message, duel_second_user_message, duel_wait_another_message, \
+        duel_roll_started, duel_wait_another_sticker
     try:
         if await is_old_message(message):
             return
@@ -1598,8 +1601,11 @@ async def duel(message: types.Message):
         duel_wait_another_message = await message.answer(
             "😱 " + duel_first_user_message.from_user.get_mention(as_html=True) + " вызвал на дуэль " + duel_second_user_message.from_user.get_mention(as_html=True)
             + "\nСтавка: " +str(duel_points) + str(numeral_noun_declension(int(duel_points), " очко", " очка", " очков"))
-            + "\nУ него есть 3 минуты, чтобы согласиться на дуэль, напиши команду /go",
+            + "\nВторой дуэлянт должен согласиться на дуэль командой /go (у него есть 3 минуты)"
+            + "\nОба могут отменить дуэль командой /dc",
             parse_mode=ParseMode.HTML)
+        duel_wait_another_sticker = await message.answer_sticker(
+            sticker='CAACAgIAAxkBAAEFqCBjBUjK__Iq4NVApcij-UEqFJLnRgACXxwAAlp2MEh0574YlXmWjSkE')
         logger.info("Duel, send message: " + str(duel_wait_another_message.text))
         logger.info("Duel: wait another user")
         await asyncio.sleep(180)
@@ -1611,6 +1617,10 @@ async def duel(message: types.Message):
         duel_roll_started = False
         try:
             await duel_wait_another_message.delete()
+        except:
+            pass
+        try:
+            await duel_wait_another_sticker.delete()
         except:
             pass
 
@@ -1625,10 +1635,98 @@ async def duel(message: types.Message):
         logger.error('Failed in duel: ' + str(e) + ", line: " + str(exc_tb.tb_lineno))
 
 
+@dp.message_handler(commands=['dc'])
+async def duel_cancel(message: types.Message):
+    logger.info("duel cancel request")
+    global duel_is_started, duel_points, duel_first_user_message, duel_second_user_message, duel_wait_another_message, \
+        duel_roll_started, duel_wait_another_sticker
+
+    try:
+        if await is_old_message(message):
+            return
+
+        if duel_roll_started:
+            await message.delete()
+            bot_m = await message.answer(
+                message.from_user.get_mention(
+                    as_html=True) + ", дуэль уже началась, её нельзя отменить!",
+                parse_mode=ParseMode.HTML)
+            logger.info("Duel cancel, send message: " + str(bot_m.text))
+            await asyncio.sleep(5)
+            await bot_m.delete()
+            logger.info("Duel cancel: duel and roll already started")
+            return
+
+        if duel_is_started:
+            logger.info("cancel: duel_is_started")
+        else :
+            logger.info("cancel: duel_is_started not started")
+
+        if duel_first_user_message is None:
+            logger.info("cancel: duel_first_user_message = is None")
+        else :
+            logger.info("cancel: duel_first_user_message != is None")
+
+        if duel_second_user_message is None:
+            logger.info("cancel: duel_second_user_message = is None")
+        else:
+            logger.info("cancel: duel_second_user_message != is None")
+
+        if duel_points is None:
+            logger.info("cancel: duel_points = is None")
+        else:
+            logger.info("cancel: duel_points != is None")
+
+        if not duel_is_started or duel_first_user_message is None or duel_second_user_message is None or duel_points is None:
+            await message.delete()
+            logger.info("DuelCancel: duel already finished")
+            return
+
+        await message.delete()
+
+        if duel_second_user_message.from_user.id != message.from_user.id and duel_first_user_message.from_user.id != message.from_user.id:
+            bot_m = await message.answer(
+                message.from_user.get_mention(as_html=True) + ", Нельзя отменить чужую дуэль! 😡",
+                parse_mode=ParseMode.HTML)
+            logger.info("DuelCancel, send message: " + str(bot_m.text))
+            await asyncio.sleep(5)
+            await bot_m.delete()
+            logger.info("DuelCancel: second user and duel assign not equals id")
+            return
+
+        logger.info('Duel cancel: canceling duel')
+        duel_first_user_message = None
+        duel_second_user_message = None
+        duel_points = None
+        duel_is_started = False
+        duel_roll_started = False
+
+        if duel_wait_another_message is not None:
+            try:
+                await duel_wait_another_message.delete()
+            except:
+                pass
+        if duel_wait_another_sticker is not None:
+            try:
+                await duel_wait_another_sticker.delete()
+            except:
+                pass
+    except Exception as e:
+        logger.info('Duel cancel: clean duel error')
+        duel_first_user_message = None
+        duel_second_user_message = None
+        duel_points = None
+        duel_is_started = False
+        duel_roll_started = False
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        logger.error('Failed in duel cancel: ' + str(e) + ", line: " + str(exc_tb.tb_lineno))
+
+
 @dp.message_handler(commands=['go'])
 async def duel_assign(message: types.Message):
     logger.info("duel assign request")
-    global duel_is_started, duel_points, duel_first_user_message, duel_second_user_message, duel_wait_another_message, duel_roll_started
+    global duel_is_started, duel_points, duel_first_user_message, duel_second_user_message, duel_wait_another_message, \
+        duel_roll_started, duel_wait_another_sticker
 
     try:
         if await is_old_message(message):
@@ -1647,24 +1745,24 @@ async def duel_assign(message: types.Message):
             return
 
         if duel_is_started:
-            print("duel_is_started")
+            logger.info("duel_is_started")
         else :
-            print("duel_is_started not started")
+            logger.info("duel_is_started not started")
 
         if duel_first_user_message is None:
-            print("duel_first_user_message = is None")
+            logger.info("duel_first_user_message = is None")
         else :
-            print("duel_first_user_message != is None")
+            logger.info("duel_first_user_message != is None")
 
         if duel_second_user_message is None:
-            print("duel_second_user_message = is None")
+            logger.info("duel_second_user_message = is None")
         else:
-            print("duel_second_user_message != is None")
+            logger.info("duel_second_user_message != is None")
 
         if duel_points is None:
-            print("duel_points = is None")
+            logger.info("duel_points = is None")
         else:
-            print("duel_points != is None")
+            logger.info("duel_points != is None")
 
         if not duel_is_started or duel_first_user_message is None or duel_second_user_message is None or duel_points is None:
             await message.delete()
@@ -1705,7 +1803,7 @@ async def duel_assign(message: types.Message):
             logger.info("DuelAssign, send message: " + str(bot_m.text))
             await asyncio.sleep(5)
             await bot_m.delete()
-            logger.info("DuelAssign: second user and duel assign not equalss id")
+            logger.info("DuelAssign: second user and duel assign not equals id")
             return
 
         duel_roll_started = True
@@ -1851,6 +1949,11 @@ async def duel_assign(message: types.Message):
                 await duel_wait_another_message.delete()
             except:
                 pass
+        if duel_wait_another_sticker is not None:
+            try:
+                await duel_wait_another_sticker.delete()
+            except:
+                pass
         if bot_first_user_rolls_duel_message is not None:
             try:
                 await bot_first_user_rolls_duel_message.delete()
@@ -1876,7 +1979,6 @@ async def duel_assign(message: types.Message):
                 await bot_finish_duel_message.delete()
             except:
                 pass
-        await message.delete()
     except Exception as e:
         logger.info('Duel: clean duel 7')
         duel_first_user_message = None
