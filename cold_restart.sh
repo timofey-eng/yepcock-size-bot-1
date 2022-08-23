@@ -19,3 +19,4 @@ nohup python3 get_members.py > logs/nohup_get_members_cold.log &
 sleep 5
 nohup python3 bot.py > logs/nohup_cold.log &
 nohup python3 wordle.py > logs/nohup_wordle_cold.log &
+nohup python3 stream_checker.py > logs/nohup_stream_checker.log &
