@@ -8,6 +8,5 @@ Change env values for get_members.py(to get the members for the selected group a
 
 Change env values for wordle.py:\
 ```IMGUR_ID = os.getenv("IMGUR_ID")```\
-And change ```chromedriver``` to your ARCH(snipped chromedriver-v17.3.0-linux-arm64)
 
 Used wordle(https://wordle.belousov.one/) solver from https://github.com/pedrecho/wordle
