@@ -63,7 +63,7 @@ messages = []
 
 
 def get_messages():
-    for message in client.iter_messages(target_group, limit=100, from_user='yepcock_size_bot', add_offset = 0):
+    for message in client.iter_messages(target_group, limit=50, from_user='yepcock_size_bot', add_offset = 0):
         if message.sender_id == 5209493476:
             print(message.sender_id, ':', message.text, ':', message.id)
             messages.append(message)
