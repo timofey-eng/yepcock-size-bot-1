@@ -81,7 +81,7 @@ def get_start_text():
            'Так и команды(для работы команд добавьте бота в группу и назначьте администратором)\n' \
            '/ping, /p - Погладить бота\n' \
            '/weather, /w - Узнать погоду, укажите город после команды\n' \
-           '/roulette, /r - Русская рулетка: выживи или получи мут на 25 минут, шанс: количество пуль к 6(при выигрыше +(2 очка * на количество пуль) + кол. пуль(по умолчанию одна пуля, количество пуль можно указать после команды(от 1 до 5 пуль)), при проигрыше -количество пуль в очках) КД 1 час\n' \
+           '/roulette, /r - Русская рулетка: выживи или получи мут на 25 минут, шанс: количество пуль к 6(при выигрыше +(3 * на количество пуль)(по умолчанию одна пуля, количество пуль можно указать после команды(от 1 до 5 пуль)), при проигрыше -количество пуль в очках) КД 1 час\n' \
            '/duel, /d -  Отправить в ответ на сообщение того, кого хочешь вызвать на дуэль с указанием ставки. Очки проигравшего перейдут к выигрывшему\n' \
            '/midas, /m - Отправить в ответ на сообщение того, кого хочешь замидасить(рулетка на мут на 25 минут, шанс 1 к 3). Стоимость 30 очков\n' \
            '/revive, /rv - Добровольный мут на 25 минут\n' \
@@ -96,7 +96,7 @@ def get_info_text():
            'Так и команды(для работы команд добавьте бота в группу и назначьте администратором)\n' \
            '/ping, /p - Погладить бота\n' \
            '/weather, /w - Узнать погоду, укажите город после команды\n' \
-           '/roulette, /r - Русская рулетка: выживи или получи мут на 25 минут, шанс: количество пуль к 6(при выигрыше +(2 очка * на количество пуль) + кол. пуль(по умолчанию одна пуля, количество пуль можно указать после команды(от 1 до 5 пуль)), при проигрыше -количество пуль в очках) КД 1 час\n' \
+           '/roulette, /r - Русская рулетка: выживи или получи мут на 25 минут, шанс: количество пуль к 6(при выигрыше +(3 очка * на количество пуль)(по умолчанию одна пуля, количество пуль можно указать после команды(от 1 до 5 пуль)), при проигрыше -количество пуль в очках) КД 1 час\n' \
            '/duel, /d -  Отправить в ответ на сообщение того, кого хочешь вызвать на дуэль с указанием ставки. Очки проигравшего перейдут к выигрывшему\n' \
            '/midas, /m - Отправить в ответ на сообщение того, кого хочешь замидасить(рулетка на мут на 25 минут, шанс 1 к 3). Стоимость 30 очков\n' \
            '/revive, /rv - Добровольный мут на 25 минут\n' \
@@ -703,19 +703,19 @@ async def roulette(message: types.Message):
                                                 " пулями")) + " из 6 в барабане! 😱",
                     parse_mode=ParseMode.HTML)
                 logger.info("Roulette, send message: " + str(bot_message_1.text))
+                dice = None
+                bot_message_2 = None
                 kill = False
                 if bullets_count == 1:
                     dice = await bot.send_dice(chat_id=message.chat.id)
                     logger.info("Roulette, random from dice is: " + str(dice.dice.value))
                     kill = dice.dice.value == 1
                     await asyncio.sleep(10)
-                    await dice.delete()
                 elif bullets_count == 5:
                     dice = await bot.send_dice(chat_id=message.chat.id)
                     logger.info("Roulette, random from dice is: " + str(dice.dice.value))
                     kill = dice.dice.value != 6
                     await asyncio.sleep(10)
-                    await dice.delete()
                 else:
                     bot_message_2 = await message.answer_sticker(
                         sticker='CAACAgIAAxkBAAEFmrNi_1NSWAwgsAVvrxM5luDs53IfSgACZx4AAh9h-EumIi-Hcwnw1SkE')
@@ -732,8 +732,6 @@ async def roulette(message: types.Message):
                             kill = True
                     logger.info("Roulette, send message: " + str(bot_message_2.text))
                     await asyncio.sleep(5)
-                    await bot_message_2.delete()
-                await bot_message_1.delete()
                 logger.info("Roulette, kill is: " + str(kill))
                 if kill:
                     until_date = (int(time.time()) + 1500)
@@ -757,9 +755,21 @@ async def roulette(message: types.Message):
                                 new_points) + " " + random.choice(
                                 sad_emoji), parse_mode=ParseMode.HTML)
                         logger.info("Roulette, send message: " + str(bot_message.text))
+                        if dice is not None:
+                            await dice.delete()
+                        if bot_message_1 is not None:
+                            await bot_message_1.delete()
+                        if bot_message_2 is not None:
+                            await bot_message_2.delete()
                         await asyncio.sleep(1500)
                         await bot_message.delete()
                     except Exception as e:
+                        if dice is not None:
+                            await dice.delete()
+                        if bot_message_1 is not None:
+                            await bot_message_1.delete()
+                        if bot_message_2 is not None:
+                            await bot_message_2.delete()
                         logger.error('Failed roulette kill: ' + str(e))
                         bot_message = await message.answer(
                             message.from_user.get_mention(as_html=True) + ", админы неуязвимы для рулетки 😭",
@@ -768,7 +778,7 @@ async def roulette(message: types.Message):
                         await asyncio.sleep(3)
                         await bot_message.delete()
                 else:
-                    add_points = (2 * bullets_count) + bullets_count
+                    add_points = 3 * bullets_count
                     if new_user:
                         new_points = add_points
                         dbRoulette.insert({'id': user_id, 'ts': int(time.time()), 'points': new_points,
@@ -788,6 +798,12 @@ async def roulette(message: types.Message):
                             happy_emoji),
                         parse_mode=ParseMode.HTML)
                     logger.info("Roulette, send message: " + str(bot_message.text))
+                    if dice is not None:
+                        await dice.delete()
+                    if bot_message_1 is not None:
+                        await bot_message_1.delete()
+                    if bot_message_2 is not None:
+                        await bot_message_2.delete()
                     await asyncio.sleep(1500)
                     await bot_message.delete()
             else:
@@ -1035,8 +1051,8 @@ async def switch(message: types.Message) -> None:
         if 'genshin' in str(message.text).lower() or 'геншин' in str(message.text).lower():
             if not message.from_user.is_bot:
                 logger.info("genshin: " + str(username))
-                await message.reply_sticker(
-                    sticker='CAACAgIAAxkBAAEFpB5jA2hRcSZ0Voo1LpQpuLDjw2vixAACDRcAAmRKKUnevtb6fKAwdSkE')
+                #await message.reply_sticker(
+                #    sticker='CAACAgIAAxkBAAEFpB5jA2hRcSZ0Voo1LpQpuLDjw2vixAACDRcAAmRKKUnevtb6fKAwdSkE')
     except Exception as e:
         logger.error('New message: ' + str(e))
 
