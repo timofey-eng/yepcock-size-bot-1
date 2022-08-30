@@ -1028,7 +1028,7 @@ async def switch(message: types.Message) -> None:
         if str(message.text).lower() == 'yes':
             logger.info("Handle yes: " + str(username))
             await message.reply(
-                "Pizda 😎",
+                "Pizdes 😎",
                 parse_mode=ParseMode.HTML,
             )
         if str(message.text).lower() == 'xdd' or str(message.text).lower() == 'хдд':
@@ -1053,6 +1053,10 @@ async def switch(message: types.Message) -> None:
                 logger.info("genshin: " + str(username))
                 #await message.reply_sticker(
                 #    sticker='CAACAgIAAxkBAAEFpB5jA2hRcSZ0Voo1LpQpuLDjw2vixAACDRcAAmRKKUnevtb6fKAwdSkE')
+        if '300' in str(message.text).lower().split():
+            if not message.from_user.is_bot:
+                logger.info("300: " + str(username))
+                await message.reply(text='Отсоси у тракториста 😊')
     except Exception as e:
         logger.error('New message: ' + str(e))
 
@@ -1460,8 +1464,6 @@ async def on_new_chat_member(message: types.Message):
             continue
         new_member_username = new_member.mention
         logger.info("New user:" + str(new_member_username))
-        if new_member.is_bot:
-            continue
         logger.info("New user: " + str(new_member.username))
         bot_message = await message.reply(
             f"{new_member.get_mention(as_html=True)}, привет! Кого бы трахнул(а) из Вселенной Гарри Поттера? Фантастические твари считаются. 😳 P.S. Если ты новенький, то попытай счастья в рулетке /roulette :)",

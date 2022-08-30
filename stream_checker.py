@@ -45,7 +45,7 @@ async def check_stream():
                 if last_stream_id != stream_id:
                     last_stream_id = stream_id
                     msg = "C_a_k_e завёл стрим! Категория: " + stream['game_name'] + "\nНазвание стрима - " + stream[
-                        'title'] + "\nhttps://www.twitch.tv/c_a_k_e"
+                        'title'] + "\nhttps://www.twitch.tv/c_a_k_e/?t=" + str(calendar.timegm(time.gmtime()))
                     alert_for_stream_id_showed = dbStreamChecker.all()
                     send_msg = True
                     if not alert_for_stream_id_showed:
