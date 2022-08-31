@@ -112,7 +112,8 @@ async def start(message: types.Message):
     ]
 
     try:
-        bot_message = await message.reply(get_start_text(), reply_markup=InlineKeyboardMarkup(key_board))
+        bot_message = await message.reply(get_start_text(),
+                                          reply_markup=InlineKeyboardMarkup(inline_keyboard=key_board))
         await asyncio.sleep(20)
         await bot_message.delete()
         await message.delete()
@@ -262,7 +263,7 @@ async def inlinequery(inline_query: InlineQuery):
                                                           + '\n' + homo_sexual(inline_query.from_user.id)
                                                           + '\n' + iq_test(inline_query.from_user.id),
                                                           parse_mode=ParseMode.HTML),
-            reply_markup=InlineKeyboardMarkup(key_daily_result)
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=key_daily_result)
         ),
         InlineQueryResultArticle(
             id=get_inline_id('sizer_cock'),
@@ -271,7 +272,7 @@ async def inlinequery(inline_query: InlineQuery):
             thumb_url='https://i.imgur.com/wnV4Le9.png',
             input_message_content=InputTextMessageContent(sizer_cock(inline_query.from_user.id),
                                                           parse_mode=ParseMode.HTML),
-            reply_markup=InlineKeyboardMarkup(key_get_my_cock_result)
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=key_get_my_cock_result)
         ),
         InlineQueryResultArticle(
             id=get_inline_id('homo_sexual'),
@@ -280,7 +281,7 @@ async def inlinequery(inline_query: InlineQuery):
             thumb_url='https://i.imgur.com/1yqokVW.png',
             input_message_content=InputTextMessageContent(homo_sexual(inline_query.from_user.id),
                                                           parse_mode=ParseMode.HTML),
-            reply_markup=InlineKeyboardMarkup(key_get_my_gay_result)
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=key_get_my_gay_result)
         ),
         InlineQueryResultArticle(
             id=get_inline_id('iq_test'),
@@ -289,7 +290,7 @@ async def inlinequery(inline_query: InlineQuery):
             thumb_url='https://i.imgur.com/95qsO7Y.png',
             input_message_content=InputTextMessageContent(iq_test(inline_query.from_user.id),
                                                           parse_mode=ParseMode.HTML),
-            reply_markup=InlineKeyboardMarkup(key_get_my_IQ_result)
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=key_get_my_IQ_result)
         ),
         InlineQueryResultArticle(
             id=get_inline_id('random_rollcall'),
@@ -1051,7 +1052,7 @@ async def switch(message: types.Message) -> None:
         if 'genshin' in str(message.text).lower() or 'геншин' in str(message.text).lower():
             if not message.from_user.is_bot:
                 logger.info("genshin: " + str(username))
-                #await message.reply_sticker(
+                # await message.reply_sticker(
                 #    sticker='CAACAgIAAxkBAAEFpB5jA2hRcSZ0Voo1LpQpuLDjw2vixAACDRcAAmRKKUnevtb6fKAwdSkE')
         if '300' in str(message.text).lower().split() or 'триста' in str(message.text).lower().split():
             if not message.from_user.is_bot:
@@ -1143,7 +1144,8 @@ async def ban(message: types.Message):
                 logger.info("Ban: perm denied: " + str(message.from_user.id))
             else:
                 logger.info("Ban: try ban user: " + str(message.reply_to_message.from_user.id))
-                await bot.restrict_chat_member(chat_id=message.chat.id, user_id=int(message.reply_to_message.from_user.id),
+                await bot.restrict_chat_member(chat_id=message.chat.id,
+                                               user_id=int(message.reply_to_message.from_user.id),
                                                permissions=ChatPermissions(can_send_messages=False))
         else:
             logger.info("Ban: reply message not found")
@@ -1163,7 +1165,8 @@ async def add_points(message: types.Message):
                 logger.info("Add points: perm denied: " + str(message.from_user.id))
             else:
                 count_points = int(message.get_args().strip())
-                logger.info("Add points: try add points user: " + str(message.reply_to_message.from_user.id) + ", points' " + str(count_points))
+                logger.info("Add points: try add points user: " + str(
+                    message.reply_to_message.from_user.id) + ", points' " + str(count_points))
                 first_user_id = message.reply_to_message.from_user.id
                 first_user_db = dbRoulette.search(UserQuery.id == first_user_id)
                 first_user_points = 0
@@ -1196,9 +1199,11 @@ async def mute(message: types.Message):
                 logger.info("Mute: perm denied: " + str(message.from_user.id))
             else:
                 seconds = int(message.get_args().strip())
-                logger.info("Mute: try mute user: " + str(message.reply_to_message.from_user.id) + " for " + str(seconds) + " seconds")
+                logger.info("Mute: try mute user: " + str(message.reply_to_message.from_user.id) + " for " + str(
+                    seconds) + " seconds")
                 until_date = (int(time.time()) + seconds)
-                await bot.restrict_chat_member(chat_id=message.chat.id, user_id=int(message.reply_to_message.from_user.id),
+                await bot.restrict_chat_member(chat_id=message.chat.id,
+                                               user_id=int(message.reply_to_message.from_user.id),
                                                permissions=ChatPermissions(can_send_messages=False),
                                                until_date=until_date)
         else:
@@ -1230,7 +1235,8 @@ async def unmute(message: types.Message):
                 logger.info("Unmute: perm denied: " + str(message.from_user.id))
             else:
                 logger.info("Unmute: try unmute user: " + str(message.reply_to_message.from_user.id))
-                await bot.restrict_chat_member(chat_id=message.chat.id, user_id=int(message.reply_to_message.from_user.id),
+                await bot.restrict_chat_member(chat_id=message.chat.id,
+                                               user_id=int(message.reply_to_message.from_user.id),
                                                permissions=ChatPermissions(can_send_messages=False),
                                                until_date=(int(time.time()) + 60))
         else:
@@ -1451,7 +1457,7 @@ async def check_permissions(message: types.Message):
         else:
             logger.info("Check permissions: try check permissions...: ")
             member = await bot.get_chat_member(chat_id=-1001173473651, user_id=int(TOKEN.split(":")[0]))
-            #member = await bot.get_chat_member(chat_id=message.chat.id, user_id=int(TOKEN.split(":")[0]))
+            # member = await bot.get_chat_member(chat_id=message.chat.id, user_id=int(TOKEN.split(":")[0]))
             logger.info("Check permissions: member:" + str(member))
     except Exception as e:
         logger.error('Failed check permissions: ' + str(e))
@@ -1469,7 +1475,7 @@ async def on_new_chat_member(message: types.Message):
             f"{new_member.get_mention(as_html=True)}, привет! Кого бы трахнул(а) из Вселенной Гарри Поттера? Фантастические твари считаются. 😳 P.S. Если ты новенький, то попытай счастья в рулетке /roulette :)",
             parse_mode=ParseMode.HTML,
         )
-        await asyncio.sleep(60*60)
+        await asyncio.sleep(60 * 60)
         await bot_message.delete()
 
 
@@ -1493,11 +1499,11 @@ async def handle_sticker(message: types.Message):
 
 
 duel_is_started = False
-duel_first_user_message : types.Message
-duel_second_user_message : types.Message
+duel_first_user_message: types.Message
+duel_second_user_message: types.Message
 duel_roll_started = False
-duel_wait_another_message : types.Message
-duel_wait_another_sticker : types.Message
+duel_wait_another_message: types.Message
+duel_wait_another_sticker: types.Message
 duel_points: int
 
 
@@ -1580,7 +1586,8 @@ async def duel(message: types.Message):
         points_bet = message.get_args().strip()
         if not points_bet or len(points_bet) == 0:
             bot_m = await message.answer(
-                message.from_user.get_mention(as_html=True) + ", ты не указал ставку для дуэли, пример <code>/duel 50</code>",
+                message.from_user.get_mention(
+                    as_html=True) + ", ты не указал ставку для дуэли, пример <code>/duel 50</code>",
                 parse_mode=ParseMode.HTML)
             logger.info("Duel, send message: " + str(bot_m.text))
             await message.delete()
@@ -1617,8 +1624,10 @@ async def duel(message: types.Message):
         duel_second_user_message = message.reply_to_message
         await message.delete()
         duel_wait_another_message = await message.answer(
-            "😱 " + duel_first_user_message.from_user.get_mention(as_html=True) + " вызвал на дуэль " + duel_second_user_message.from_user.get_mention(as_html=True)
-            + "\nСтавка: " +str(duel_points) + str(numeral_noun_declension(int(duel_points), " очко", " очка", " очков"))
+            "😱 " + duel_first_user_message.from_user.get_mention(
+                as_html=True) + " вызвал на дуэль " + duel_second_user_message.from_user.get_mention(as_html=True)
+            + "\nСтавка: " + str(duel_points) + str(
+                numeral_noun_declension(int(duel_points), " очко", " очка", " очков"))
             + "\nВторой дуэлянт должен согласиться на дуэль командой /go (у него есть 3 минуты)"
             + "\nОба могут отменить дуэль командой /dc",
             parse_mode=ParseMode.HTML)
@@ -1677,12 +1686,12 @@ async def duel_cancel(message: types.Message):
 
         if duel_is_started:
             logger.info("cancel: duel_is_started")
-        else :
+        else:
             logger.info("cancel: duel_is_started not started")
 
         if duel_first_user_message is None:
             logger.info("cancel: duel_first_user_message = is None")
-        else :
+        else:
             logger.info("cancel: duel_first_user_message != is None")
 
         if duel_second_user_message is None:
@@ -1764,12 +1773,12 @@ async def duel_assign(message: types.Message):
 
         if duel_is_started:
             logger.info("duel_is_started")
-        else :
+        else:
             logger.info("duel_is_started not started")
 
         if duel_first_user_message is None:
             logger.info("duel_first_user_message = is None")
-        else :
+        else:
             logger.info("duel_first_user_message != is None")
 
         if duel_second_user_message is None:
@@ -1847,8 +1856,10 @@ async def duel_assign(message: types.Message):
 
         if first_user_points < duel_points:
             bot_m = await message.answer(
-                "У " + duel_first_user_message.from_user.get_mention(as_html=True) + " нет столько поинтов, у него всего "
-                + str(first_user_points) + str(numeral_noun_declension(int(first_user_points), " очко!", " очка!", " очков!")),
+                "У " + duel_first_user_message.from_user.get_mention(
+                    as_html=True) + " нет столько поинтов, у него всего "
+                + str(first_user_points) + str(
+                    numeral_noun_declension(int(first_user_points), " очко!", " очка!", " очков!")),
                 parse_mode=ParseMode.HTML)
             logger.info("DuelAssign, send message: " + str(bot_m.text))
             logger.info("DuelAssign: first user points less bet")
@@ -1863,8 +1874,10 @@ async def duel_assign(message: types.Message):
 
         if second_user_points < duel_points:
             bot_m = await message.answer(
-                "У " + duel_second_user_message.from_user.get_mention(as_html=True) + " нет столько поинтов, у него всего "
-                + str(second_user_points) + str(numeral_noun_declension(int(second_user_points), " очко!", " очка!", " очков!")),
+                "У " + duel_second_user_message.from_user.get_mention(
+                    as_html=True) + " нет столько поинтов, у него всего "
+                + str(second_user_points) + str(
+                    numeral_noun_declension(int(second_user_points), " очко!", " очка!", " очков!")),
                 parse_mode=ParseMode.HTML)
             logger.info("DuelAssign, send message: " + str(bot_m.text))
             logger.info("DuelAssign: second user points less bet")
@@ -1885,7 +1898,7 @@ async def duel_assign(message: types.Message):
         bot_first_user_rolls_duel_message = await message.answer(
             duel_first_user_message.from_user.get_mention(as_html=True) + " кидает 🎲...",
             parse_mode=ParseMode.HTML)
-        rand_emoji = random.choice(['🎲','🎳'])
+        rand_emoji = random.choice(['🎲', '🎳'])
         first_user_dice = await bot.send_dice(chat_id=message.chat.id, emoji=rand_emoji)
         logger.info("DuelAssign, first user dice is: " + str(first_user_dice.dice.value))
         first_user_dice_value = first_user_dice.dice.value
@@ -1901,10 +1914,11 @@ async def duel_assign(message: types.Message):
         if first_user_dice_value > second_user_dice_value:
             bot_finish_duel_message = await message.answer(
                 "🎉 " + duel_first_user_message.from_user.get_mention(as_html=True)
-            + "(выкинул " + str(first_user_dice_value) + ") обыграл " + duel_second_user_message.from_user.get_mention(as_html=True)
-            + "(выкинул " + str(second_user_dice_value) + ") и получает "
-            + str(duel_points) + str(numeral_noun_declension(int(duel_points), " очко!", " очка!", " очков!"))
-            + " 👏😎", parse_mode=ParseMode.HTML)
+                + "(выкинул " + str(
+                    first_user_dice_value) + ") обыграл " + duel_second_user_message.from_user.get_mention(as_html=True)
+                + "(выкинул " + str(second_user_dice_value) + ") и получает "
+                + str(duel_points) + str(numeral_noun_declension(int(duel_points), " очко!", " очка!", " очков!"))
+                + " 👏😎", parse_mode=ParseMode.HTML)
             first_user_points = int(first_user_points) + int(duel_points)
             dbRoulette.update({'id': first_user_id, 'points': first_user_points},
                               UserQuery.id == first_user_id)
@@ -1917,9 +1931,10 @@ async def duel_assign(message: types.Message):
         if first_user_dice_value < second_user_dice_value:
             bot_finish_duel_message = await message.answer(
                 "🎉 " + duel_second_user_message.from_user.get_mention(as_html=True)
-            + "(выкинул " + str(second_user_dice_value) + ") обыграл " + duel_first_user_message.from_user.get_mention(as_html=True)
-            + "(выкинул " + str(first_user_dice_value) + ") и получает "
-            + str(duel_points) + str(numeral_noun_declension(int(duel_points), " очко!", " очка!", " очков!"))
+                + "(выкинул " + str(
+                    second_user_dice_value) + ") обыграл " + duel_first_user_message.from_user.get_mention(as_html=True)
+                + "(выкинул " + str(first_user_dice_value) + ") и получает "
+                + str(duel_points) + str(numeral_noun_declension(int(duel_points), " очко!", " очка!", " очков!"))
                 + " 👏😎", parse_mode=ParseMode.HTML)
             second_user_points = int(second_user_points) + int(duel_points)
             dbRoulette.update({'id': second_user_id, 'points': second_user_points},
@@ -1935,9 +1950,10 @@ async def duel_assign(message: types.Message):
             bot_finish_duel_message = await message.answer(
                 "😱 Ого! Оба выкинули одинаковую сторону! "
                 + duel_second_user_message.from_user.get_mention(as_html=True)
-            + "(выкинул " + str(second_user_dice_value) + ") и " + duel_first_user_message.from_user.get_mention(as_html=True)
-            + "(выкинул " + str(first_user_dice_value) + ")! Оба получают удвоенное количество очков: "
-            + str(duel_points) + str(numeral_noun_declension(int(duel_points), " очко!", " очка!", " очков!"))
+                + "(выкинул " + str(second_user_dice_value) + ") и " + duel_first_user_message.from_user.get_mention(
+                    as_html=True)
+                + "(выкинул " + str(first_user_dice_value) + ")! Оба получают удвоенное количество очков: "
+                + str(duel_points) + str(numeral_noun_declension(int(duel_points), " очко!", " очка!", " очков!"))
                 + " 👏😎", parse_mode=ParseMode.HTML)
             first_user_points = int(first_user_points) + int(duel_points)
             dbRoulette.update({'id': first_user_id, 'points': first_user_points},
