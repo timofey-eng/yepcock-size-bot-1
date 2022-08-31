@@ -1053,7 +1053,7 @@ async def switch(message: types.Message) -> None:
                 logger.info("genshin: " + str(username))
                 #await message.reply_sticker(
                 #    sticker='CAACAgIAAxkBAAEFpB5jA2hRcSZ0Voo1LpQpuLDjw2vixAACDRcAAmRKKUnevtb6fKAwdSkE')
-        if '300' in str(message.text).lower().split():
+        if '300' in str(message.text).lower().split() or 'триста' in str(message.text).lower().split():
             if not message.from_user.is_bot:
                 logger.info("300: " + str(username))
                 await message.reply(text='Отсоси у тракториста 😊')
@@ -1627,21 +1627,21 @@ async def duel(message: types.Message):
         logger.info("Duel, send message: " + str(duel_wait_another_message.text))
         logger.info("Duel: wait another user")
         await asyncio.sleep(180)
-        logger.info('Duel: clean duel 1')
-        duel_first_user_message = None
-        duel_second_user_message = None
-        duel_points = None
-        duel_is_started = False
-        duel_roll_started = False
-        try:
-            await duel_wait_another_message.delete()
-        except:
-            pass
-        try:
-            await duel_wait_another_sticker.delete()
-        except:
-            pass
-
+        if not duel_is_started:
+            logger.info('Duel: clean duel 1')
+            duel_first_user_message = None
+            duel_second_user_message = None
+            duel_points = None
+            duel_is_started = False
+            duel_roll_started = False
+            try:
+                await duel_wait_another_message.delete()
+            except:
+                pass
+            try:
+                await duel_wait_another_sticker.delete()
+            except:
+                pass
     except Exception as e:
         logger.info('Duel: clean duel 2')
         duel_first_user_message = None
