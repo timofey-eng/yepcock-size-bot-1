@@ -1147,10 +1147,40 @@ async def ban(message: types.Message):
                 await bot.restrict_chat_member(chat_id=message.chat.id,
                                                user_id=int(message.reply_to_message.from_user.id),
                                                permissions=ChatPermissions(can_send_messages=False))
+                bot_message = await message.answer(
+                    "Бот забанил " + message.reply_to_message.from_user.get_mention(as_html=True) + " бессрочно.", parse_mode=ParseMode.HTML)
+                await asyncio.sleep(60)
+                await bot_message.delete()
         else:
             logger.info("Ban: reply message not found")
     except Exception as e:
         logger.error('Failed to ban user: ' + str(e))
+
+
+@dp.message_handler(commands=['band'])
+async def band(message: types.Message):
+    logger.info("ban and delete message request")
+    try:
+        if await is_old_message(message):
+            return
+        await message.delete()
+        if message.reply_to_message is not None:
+            if message.from_user.id != 220117151:
+                logger.info("Band: perm denied: " + str(message.from_user.id))
+            else:
+                logger.info("Band: try ban user: " + str(message.reply_to_message.from_user.id))
+                await bot.restrict_chat_member(chat_id=message.chat.id,
+                                               user_id=int(message.reply_to_message.from_user.id),
+                                               permissions=ChatPermissions(can_send_messages=False))
+                await bot.delete_message(chat_id=message.chat.id, message_id=message.reply_to_message.message_id)
+                bot_message = await message.answer(
+                    "Бот забанил " + message.reply_to_message.from_user.get_mention(as_html=True) + " бессрочно.", parse_mode=ParseMode.HTML)
+                await asyncio.sleep(60)
+                await bot_message.delete()
+        else:
+            logger.info("Band: reply message not found")
+    except Exception as e:
+        logger.error('Failed to band user: ' + str(e))
 
 
 @dp.message_handler(commands=['addpoints'])
@@ -1636,7 +1666,7 @@ async def duel(message: types.Message):
         logger.info("Duel, send message: " + str(duel_wait_another_message.text))
         logger.info("Duel: wait another user")
         await asyncio.sleep(180)
-        if not duel_is_started:
+        if not duel_roll_started or not duel_is_started:
             logger.info('Duel: clean duel 1')
             duel_first_user_message = None
             duel_second_user_message = None
