@@ -1035,13 +1035,13 @@ async def switch(message: types.Message) -> None:
         if str(message.text).lower() == 'xdd' or str(message.text).lower() == 'хдд':
             if not message.from_user.is_bot:
                 logger.info("xdd: " + str(username))
-                await message.delete()
+                #await message.delete()
                 await message.answer_sticker(
                     sticker='CAACAgIAAxkBAAEFlthi_NZPHFXutw4ZIr6mIJJrK1tDiwACXRoAApJdYEtMTTimqH0G8ykE')
         if str(message.text).lower() == 'pog' or str(message.text).lower() == 'пог':
             if not message.from_user.is_bot:
                 logger.info("pog: " + str(username))
-                await message.delete()
+                #await message.delete()
                 await message.answer_sticker(
                     sticker='CAACAgIAAxkBAAEFmX5i_jcijaQtdlgGZDEknCwJSSg2VgACBgADezwGEd4e2v_l10SjKQQ')
         if str(message.text) == '/start@Crocodile_Covid_Bot':
@@ -1147,10 +1147,10 @@ async def ban(message: types.Message):
                 await bot.restrict_chat_member(chat_id=message.chat.id,
                                                user_id=int(message.reply_to_message.from_user.id),
                                                permissions=ChatPermissions(can_send_messages=False))
-                bot_message = await message.answer(
-                    "Бот забанил " + message.reply_to_message.from_user.get_mention(as_html=True) + " бессрочно.", parse_mode=ParseMode.HTML)
-                await asyncio.sleep(60)
-                await bot_message.delete()
+                #bot_message = await message.answer(
+                #    "Бот забанил " + message.reply_to_message.from_user.get_mention(as_html=True) + " бессрочно.", parse_mode=ParseMode.HTML)
+                #await asyncio.sleep(60)
+                #await bot_message.delete()
         else:
             logger.info("Ban: reply message not found")
     except Exception as e:
@@ -1173,10 +1173,10 @@ async def band(message: types.Message):
                                                user_id=int(message.reply_to_message.from_user.id),
                                                permissions=ChatPermissions(can_send_messages=False))
                 await bot.delete_message(chat_id=message.chat.id, message_id=message.reply_to_message.message_id)
-                bot_message = await message.answer(
-                    "Бот забанил " + message.reply_to_message.from_user.get_mention(as_html=True) + " бессрочно.", parse_mode=ParseMode.HTML)
-                await asyncio.sleep(60)
-                await bot_message.delete()
+                #bot_message = await message.answer(
+                #    "Бот забанил " + message.reply_to_message.from_user.get_mention(as_html=True) + " бессрочно.", parse_mode=ParseMode.HTML)
+                #await asyncio.sleep(60)
+                #await bot_message.delete()
         else:
             logger.info("Band: reply message not found")
     except Exception as e:
@@ -1637,16 +1637,16 @@ async def duel(message: types.Message):
             logger.info("Duel: bet is zero")
             return
 
-        if int(points_bet) > 500:
-            bot_m = await message.answer(
-                message.from_user.get_mention(as_html=True) + ", ставка = максимум 500",
-                parse_mode=ParseMode.HTML)
-            logger.info("Duel, send message: " + str(bot_m.text))
-            await message.delete()
-            await asyncio.sleep(5)
-            await bot_m.delete()
-            logger.info("Duel: bet is max")
-            return
+        #if int(points_bet) > 500:
+        #    bot_m = await message.answer(
+        #        message.from_user.get_mention(as_html=True) + ", ставка = максимум 500",
+        #        parse_mode=ParseMode.HTML)
+        #    logger.info("Duel, send message: " + str(bot_m.text))
+        #    await message.delete()
+        #    await asyncio.sleep(5)
+        #    await bot_m.delete()
+        #    logger.info("Duel: bet is max")
+        #    return
 
         duel_is_started = True
         duel_points = int(points_bet)
