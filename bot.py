@@ -1038,6 +1038,12 @@ async def switch(message: types.Message) -> None:
                 #await message.delete()
                 await message.answer_sticker(
                     sticker='CAACAgIAAxkBAAEFlthi_NZPHFXutw4ZIr6mIJJrK1tDiwACXRoAApJdYEtMTTimqH0G8ykE')
+        if str(message.text).lower() == 'сэдкот' or str(message.text).lower() == 'сэдкэт' or str(message.text).lower() == 'sadcat':
+            if not message.from_user.is_bot:
+                logger.info("sadcat: " + str(username))
+                #await message.delete()
+                await message.answer_sticker(
+                    sticker='CAACAgIAAxkBAAEF3hVjJkoQVbtOAAGcqV864S0BwJIZxmkAAxwAAgxZCUn3jc34CkwKXikE')
         if str(message.text).lower() == 'pog' or str(message.text).lower() == 'пог':
             if not message.from_user.is_bot:
                 logger.info("pog: " + str(username))
