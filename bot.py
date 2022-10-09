@@ -333,6 +333,13 @@ async def inlinequery(inline_query: InlineQuery):
                                                           parse_mode=ParseMode.HTML),
         ),
         InlineQueryResultArticle(
+            id=get_inline_id('get_sp'),
+            title="Стикер-паки",
+            thumb_url='https://i.imgur.com/QMIJ0aG.png',
+            input_message_content=InputTextMessageContent(get_sp(),
+                                                          parse_mode=ParseMode.HTML),
+        ),
+        InlineQueryResultArticle(
             id=get_inline_id('info_text'),
             title="О боте",
             description='Описание',
@@ -406,6 +413,23 @@ def random_rollcall():
             return old_rollcall_of_the_day[0]['old_rollcall_of_the_day']
     except Exception as e:
         logger.error('Failed to random_rollcall: ' + str(e))
+        return error_template
+
+
+def get_sp():
+    try:
+        return 'Стикер-паки от бота:\n' \
+               'Кекисы:\n' \
+               '1 https://t.me/addstickers/f_z1s2gryf_220117151_by_fStikBot\n' \
+               '2 https://t.me/addstickers/Kekisy2\n' \
+               '3 https://t.me/addstickers/Kekisy3\n' \
+               '4 https://t.me/addstickers/kekisy4\n' \
+               'Emoji кекисы:\n' \
+               '1 https://t.me/addemoji/kekisy1\n' \
+               '2 https://t.me/addemoji/kekisy2emoji\n' \
+               '3 https://t.me/addemoji/kekisy3emoji'
+    except Exception as e:
+        logger.error('Failed to get_sp: ' + str(e))
         return error_template
 
 
@@ -840,7 +864,7 @@ async def midas(message: types.Message):
                 message.chat.id))
         if not message.reply_to_message:
             bot_m = await message.answer(
-                message.from_user.get_mention(as_html=True) + ", не выбрано сообщение для мидаса",
+                message.from_user.get_mention(as_html=True) + ", не выбрано сообщение того, кого будем мидасить",
                 parse_mode=ParseMode.HTML)
             logger.info("Midas, send message: " + str(bot_m.text))
             await asyncio.sleep(10)
@@ -893,6 +917,7 @@ async def midas(message: types.Message):
                         logger.info("Midas, send message: " + str(bot_message.text))
                         await asyncio.sleep(1500)
                         await bot_message.delete()
+                        await st_message.delete()
                     except Exception as e:
                         logger.error('Failed roulette kill: ' + str(e))
                         bot_message = await message.answer(
@@ -1129,7 +1154,7 @@ async def del_message(message: types.Message):
             if not msg_id or len(msg_id) == 0:
                 logger.info("Delete message: msg_id in message not found")
             else:
-                if message.from_user.id != 220117151:
+                if message.from_user.id != 220117151 and message.from_user.id != 261865758:
                     logger.info("Delete message: perm denied: " + str(message.from_user.id))
                 else:
                     logger.info("Delete message: try deleting message w id: " + str(msg_id))
@@ -1146,7 +1171,7 @@ async def ban(message: types.Message):
             return
         await message.delete()
         if message.reply_to_message is not None:
-            if message.from_user.id != 220117151:
+            if message.from_user.id != 220117151 and message.from_user.id != 261865758:
                 logger.info("Ban: perm denied: " + str(message.from_user.id))
             else:
                 logger.info("Ban: try ban user: " + str(message.reply_to_message.from_user.id))
@@ -1171,7 +1196,7 @@ async def band(message: types.Message):
             return
         await message.delete()
         if message.reply_to_message is not None:
-            if message.from_user.id != 220117151:
+            if message.from_user.id != 220117151 and message.from_user.id != 261865758:
                 logger.info("Band: perm denied: " + str(message.from_user.id))
             else:
                 logger.info("Band: try ban user: " + str(message.reply_to_message.from_user.id))
@@ -1231,7 +1256,7 @@ async def mute(message: types.Message):
             return
         await message.delete()
         if message.reply_to_message is not None:
-            if message.from_user.id != 220117151:
+            if message.from_user.id != 220117151 and message.from_user.id != 261865758:
                 logger.info("Mute: perm denied: " + str(message.from_user.id))
             else:
                 seconds = int(message.get_args().strip())
@@ -1247,7 +1272,7 @@ async def mute(message: types.Message):
             if not user_id or len(user_id) == 0:
                 logger.info("Mute: user_id in message not found")
             else:
-                if message.from_user.id != 220117151:
+                if message.from_user.id != 220117151 or message.from_user.id != 261865758:
                     logger.info("Mute: perm denied: " + str(message.from_user.id))
                 else:
                     logger.info("Mute: try mute user: " + str(user_id))
@@ -1259,6 +1284,43 @@ async def mute(message: types.Message):
         logger.error('Failed to mute user: ' + str(e))
 
 
+@dp.message_handler(commands=['muted'])
+async def muted(message: types.Message):
+    logger.info("muted request")
+    try:
+        if await is_old_message(message):
+            return
+        await message.delete()
+        if message.reply_to_message is not None:
+            if message.from_user.id != 220117151 and message.from_user.id != 261865758:
+                logger.info("muted: perm denied: " + str(message.from_user.id))
+            else:
+                seconds = int(message.get_args().strip())
+                logger.info("muted: try muted user: " + str(message.reply_to_message.from_user.id) + " for " + str(
+                    seconds) + " seconds")
+                until_date = (int(time.time()) + seconds)
+                await bot.restrict_chat_member(chat_id=message.chat.id,
+                                               user_id=int(message.reply_to_message.from_user.id),
+                                               permissions=ChatPermissions(can_send_messages=False),
+                                               until_date=until_date)
+                await bot.delete_message(chat_id=message.chat.id, message_id=message.reply_to_message.message_id)
+        else:
+            user_id = message.get_args().strip()
+            if not user_id or len(user_id) == 0:
+                logger.info("muted: user_id in message not found")
+            else:
+                if message.from_user.id != 220117151 or message.from_user.id != 261865758:
+                    logger.info("muted: perm denied: " + str(message.from_user.id))
+                else:
+                    logger.info("muted: try mute user: " + str(user_id))
+                    until_date = (int(time.time()) + 3600)
+                    await bot.restrict_chat_member(chat_id=-1001173473651, user_id=int(user_id),
+                                                   permissions=ChatPermissions(can_send_messages=False),
+                                                   until_date=until_date)
+    except Exception as e:
+        logger.error('Failed to muted user: ' + str(e))
+
+
 @dp.message_handler(commands=['unmute', 'unban'])
 async def unmute(message: types.Message):
     logger.info("unmute request")
@@ -1267,7 +1329,7 @@ async def unmute(message: types.Message):
             return
         await message.delete()
         if message.reply_to_message is not None:
-            if message.from_user.id != 220117151:
+            if message.from_user.id != 220117151 or message.from_user.id != 261865758:
                 logger.info("Unmute: perm denied: " + str(message.from_user.id))
             else:
                 logger.info("Unmute: try unmute user: " + str(message.reply_to_message.from_user.id))
@@ -1280,7 +1342,7 @@ async def unmute(message: types.Message):
             if not user_id or len(user_id) == 0:
                 logger.info("Unmute: user_id in message not found")
             else:
-                if message.from_user.id != 220117151:
+                if message.from_user.id != 220117151 and message.from_user.id != 261865758:
                     logger.info("Unmute: perm denied: " + str(message.from_user.id))
                 else:
                     logger.info("Unmute: try mute user: " + str(user_id))
