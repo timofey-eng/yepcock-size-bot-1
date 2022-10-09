@@ -917,7 +917,6 @@ async def midas(message: types.Message):
                         logger.info("Midas, send message: " + str(bot_message.text))
                         await asyncio.sleep(1500)
                         await bot_message.delete()
-                        await st_message.delete()
                     except Exception as e:
                         logger.error('Failed roulette kill: ' + str(e))
                         bot_message = await message.answer(
