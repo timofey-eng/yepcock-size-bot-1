@@ -1062,12 +1062,18 @@ async def switch(message: types.Message) -> None:
                 #await message.delete()
                 await message.answer_sticker(
                     sticker='CAACAgIAAxkBAAEFlthi_NZPHFXutw4ZIr6mIJJrK1tDiwACXRoAApJdYEtMTTimqH0G8ykE')
-        if str(message.text).lower() == 'сэдкот' or str(message.text).lower() == 'сэдкэт' or str(message.text).lower() == 'sadcat':
+        if str(message.text).lower() == 'сэдкот' or str(message.text).lower() == 'сэдкэт' or str(message.text).lower() == 'sadcat' or str(message.text).lower() == 'сэдкет':
             if not message.from_user.is_bot:
                 logger.info("sadcat: " + str(username))
                 #await message.delete()
                 await message.answer_sticker(
                     sticker='CAACAgIAAxkBAAEF3hVjJkoQVbtOAAGcqV864S0BwJIZxmkAAxwAAgxZCUn3jc34CkwKXikE')
+        if str(message.text).lower() == 'kekw' or str(message.text).lower() == 'кекв':
+            if not message.from_user.is_bot:
+                logger.info("kekw: " + str(username))
+                #await message.delete()
+                await message.answer_sticker(
+                    sticker='CAACAgIAAxkBAAEGDBNjQzV8y_M8IpJBwPocAcTz84cCeAAC3QMAAuB5UgdGIcN1K0HvwSoE')
         if str(message.text).lower() == 'pog' or str(message.text).lower() == 'пог':
             if not message.from_user.is_bot:
                 logger.info("pog: " + str(username))
