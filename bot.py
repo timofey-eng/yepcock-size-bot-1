@@ -88,6 +88,7 @@ def get_start_text():
            '/points, /ps - Показать количество очков\n' \
            '/top10, /t - Показать топ 10 по очкам\n' \
            '/bottom10, /b - Показать у кого меньше всех очков\n' \
+           '/coin, /c - Подбросить монетку' \
            '' + get_raspberry_info()
 
 
@@ -102,7 +103,8 @@ def get_info_text():
            '/revive, /rv - Добровольный мут на 25 минут\n' \
            '/points, /ps - Показать количество очков\n' \
            '/top10, /t - Показать топ 10 по очкам\n' \
-           '/bottom10, /b - Показать у кого меньше всех очков\n'
+           '/bottom10, /b - Показать у кого меньше всех очков\n' \
+           '/coin, /c - Подбросить монетку'
 
 
 @dp.message_handler(commands=['start'])
@@ -333,6 +335,13 @@ async def inlinequery(inline_query: InlineQuery):
                                                           parse_mode=ParseMode.HTML),
         ),
         InlineQueryResultArticle(
+            id=get_inline_id('get_random_choiсe'),
+            title="Орёл или решка",
+            thumb_url='https://cdn.7tv.app/emote/61d1feb2752f555bcde94488/4x.png',
+            input_message_content=InputTextMessageContent(get_random_choice(),
+                                                          parse_mode=ParseMode.HTML),
+        ),
+        InlineQueryResultArticle(
             id=get_inline_id('get_sp'),
             title="Стикер-паки",
             thumb_url='https://i.imgur.com/QMIJ0aG.png',
@@ -356,6 +365,20 @@ async def inlinequery(inline_query: InlineQuery):
     except Exception as e:
         logger.error('Failed to update.inline_query.answer: ' + str(e))
         logger.info('\n')
+
+
+def get_random_choice():
+    ret_text = ''
+    edge = random.randint(1,100)
+    if edge <=5:
+        return 'Ребро!'
+    side = random.randint(1,2)
+    if side == 1:
+        ret_text='Орёл'
+    else:
+        ret_text='Решка'
+    return ret_text
+
 
 
 def get_wordle_result():
@@ -548,6 +571,18 @@ async def ping(message: types.Message):
         await bot_message.delete()
     except Exception as e:
         logger.error('Failed ping: ' + str(e))
+
+
+@dp.message_handler(commands=['coin', 'c'])
+async def ping(message: types.Message):
+    logger.info("coin request")
+    try:
+        if await is_old_message(message):
+            return
+        await message.delete()
+        await message.answer(message.from_user.get_mention(as_html=True) + ' подбросил монетку: '+ get_random_choice(), parse_mode=ParseMode.HTML)
+    except Exception as e:
+        logger.error('Failed coin: ' + str(e))
 
 
 def get_random_gay_user_from_csv():
