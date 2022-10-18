@@ -69,6 +69,9 @@ with open("members.csv", "w", encoding='UTF-8') as f:
             break
         username = ""
         if user.username:
+            if user.username == 'Cake_stream':
+                print('is cake, continue')
+                continue
             username = user.username
         else:
             continue

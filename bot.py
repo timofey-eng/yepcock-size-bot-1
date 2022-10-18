@@ -447,6 +447,7 @@ def get_sp():
                '2 https://t.me/addstickers/Kekisy2\n' \
                '3 https://t.me/addstickers/Kekisy3\n' \
                '4 https://t.me/addstickers/kekisy4\n' \
+               '5 https://t.me/addstickers/C_a_k_e_stickers\n' \
                'Emoji кекисы:\n' \
                '1 https://t.me/addemoji/kekisy1\n' \
                '2 https://t.me/addemoji/kekisy2emoji\n' \
@@ -1115,6 +1116,12 @@ async def switch(message: types.Message) -> None:
                 #await message.delete()
                 await message.answer_sticker(
                     sticker='CAACAgIAAxkBAAEFmX5i_jcijaQtdlgGZDEknCwJSSg2VgACBgADezwGEd4e2v_l10SjKQQ')
+        if str(message.text).lower() == 'вж' or str(message.text).lower() == 'd:':
+            if not message.from_user.is_bot:
+                logger.info("ВЖ: " + str(username))
+                #await message.delete()
+                await message.answer_sticker(
+                    sticker='CAACAgIAAxkBAAEGIDVjTi0-ZF0drKvP0zeUkCtD7QAB-WIAAs8DAALgeVIHt6ePD9s35_cqBA')
         if str(message.text) == '/start@Crocodile_Covid_Bot':
             if not message.from_user.is_bot:
                 logger.info("start Crocodile_Covid_Bot: " + str(username))
