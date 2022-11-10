@@ -24,6 +24,7 @@ from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import InlineQuery, InputTextMessageContent, InlineQueryResultArticle, InlineKeyboardMarkup, \
     InlineKeyboardButton, ParseMode, ChatPermissions
+from python_aternos import Client
 
 # Enable logging
 logging.basicConfig(
@@ -37,6 +38,10 @@ load_dotenv()
 TOKEN = os.getenv("TG_BOT_TOKEN")
 TWITCH_CLIENT_ID = os.getenv("TWITCH_CLIENT_ID")
 TWITCH_BEARER_TOKEN = os.getenv("TWITCH_BEARER_TOKEN")
+ATERNOS_LOGIN = os.getenv("ATERNOS_LOGIN")
+ATERNOS_PASSWORD = os.getenv("ATERNOS_PASSWORD")
+ATERNOS_VOLGA_NAME = os.getenv("ATERNOS_VOLGA_NAME")
+ATERNOS_SENTRY_NAME = os.getenv("ATERNOS_SENTRY_NAME")
 bot = Bot(token=TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
@@ -88,7 +93,8 @@ def get_start_text():
            '/points, /ps - Показать количество очков\n' \
            '/top10, /t - Показать топ 10 по очкам\n' \
            '/bottom10, /b - Показать у кого меньше всех очков\n' \
-           '/coin, /c - Подбросить монетку' \
+           '/coin, /c - Подбросить монетку\n' \
+           '/anekdot /an - Случайный анекдот с anekdot.ru\n' \
            '' + get_raspberry_info()
 
 
@@ -104,7 +110,8 @@ def get_info_text():
            '/points, /ps - Показать количество очков\n' \
            '/top10, /t - Показать топ 10 по очкам\n' \
            '/bottom10, /b - Показать у кого меньше всех очков\n' \
-           '/coin, /c - Подбросить монетку'
+           '/coin, /c - Подбросить монетку\n' \
+           '/anekdot /an - Случайный анекдот с anekdot.ru'
 
 
 @dp.message_handler(commands=['start'])
@@ -327,6 +334,13 @@ async def inlinequery(inline_query: InlineQuery):
                                                           parse_mode=ParseMode.HTML)
         ),
         InlineQueryResultArticle(
+            id=get_inline_id('anekdot'),
+            title="Случайный анекдот",
+            thumb_url='https://i.imgur.com/TonbezY.jpeg',
+            input_message_content=InputTextMessageContent(get_random_anekdot_ru(),
+                                                          parse_mode=ParseMode.HTML, disable_web_page_preview=True),
+        ),
+        InlineQueryResultArticle(
             id=get_inline_id('get_exchange_rates'),
             title="Курс ЦБ РФ $/€ к ₽",
             description=update_cbr_template,
@@ -365,6 +379,23 @@ async def inlinequery(inline_query: InlineQuery):
     except Exception as e:
         logger.error('Failed to update.inline_query.answer: ' + str(e))
         logger.info('\n')
+
+
+def get_random_anekdot_ru():
+    headers = {
+        'user-agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36 OPR/84.0.4316.52'
+    }
+    import requests
+    from bs4 import BeautifulSoup
+    url = 'https://www.anekdot.ru/random/anekdot/'
+    page = requests.get(url, timeout=2)
+    soup = BeautifulSoup(page.text, "html.parser")
+    anekdot = soup.find(class_='text')
+    anekdot = str(anekdot)
+    anekdot = anekdot.replace('<div class="text">', '')
+    anekdot = anekdot.replace('<br/>', '\n')
+    anekdot = anekdot.replace('</div>', '')
+    return anekdot
 
 
 def get_random_choice():
@@ -584,6 +615,19 @@ async def ping(message: types.Message):
         await message.answer(message.from_user.get_mention(as_html=True) + ' подбросил монетку: '+ get_random_choice(), parse_mode=ParseMode.HTML)
     except Exception as e:
         logger.error('Failed coin: ' + str(e))
+
+
+@dp.message_handler(commands=['anekdot', 'an'])
+async def ping(message: types.Message):
+    logger.info("anekdot request")
+    try:
+        if await is_old_message(message):
+            return
+        await message.delete()
+        await message.answer('Случайный /anekdot:\n'+ get_random_anekdot_ru(), parse_mode=ParseMode.HTML)
+    except Exception as e:
+        logger.error('Failed anekdot: ' + str(e))
+
 
 
 def get_random_gay_user_from_csv():
@@ -1086,6 +1130,10 @@ async def switch(message: types.Message) -> None:
                 "Пизда 😎",
                 parse_mode=ParseMode.HTML,
             )
+        if str(message.text).lower() == 'да пизда':
+            logger.info("Handle yes2: " + str(username))
+            await message.reply_sticker(
+                sticker='CAACAgIAAxkBAAEGSN1jYhmlV7iTNoNv1Nuv35-9ksnfqwADIQAC_K8AAUibdSfeqI_efioE')
         if str(message.text).lower() == 'yes':
             logger.info("Handle yes: " + str(username))
             await message.reply(
@@ -2167,6 +2215,133 @@ async def duel_assign(message: types.Message):
         duel_roll_started = False
         exc_type, exc_obj, exc_tb = sys.exc_info()
         logger.error('Failed in duel assign: ' + str(e) + ", line: " + str(exc_tb.tb_lineno))
+
+
+@dp.message_handler(commands=['minestatus', 'ms'])
+async def mine_status(message: types.Message):
+    logger.info("minestatus request")
+    try:
+        try:
+            if await is_old_message(message):
+                return
+            await message.delete()
+        except Exception as e:
+            logger.error('Failed minestatus: ' + str(e))
+            return
+
+        if message.chat.id != -1001531643521 and message.chat.id != -1001567412048:
+            return
+        aternos = Client.from_credentials(ATERNOS_LOGIN, ATERNOS_PASSWORD)
+        servers = aternos.list_servers(cache=False)
+        myserv = servers[0]
+        for x in range(len(servers)):
+            logger.info(servers[x].address)
+            if ATERNOS_VOLGA_NAME in str(servers[x].address) or ATERNOS_VOLGA_NAME in str(servers[x].address):
+                myserv = servers[x]
+        if myserv is None:
+            await message.answer('Сервер не найден', parse_mode=ParseMode.HTML)
+            return
+        logger.info(myserv.status)
+        await message.answer(message.from_user.get_mention(as_html=True) + ', статус сервера: ' + myserv.status + ' '
+                             + get_emote_by_server_status(status=myserv.status) + '\nАдрес: ' + myserv.address,
+                             parse_mode=ParseMode.HTML)
+    except Exception as e:
+        await message.answer('Произошла ошибка при проверке статуса сервера', parse_mode=ParseMode.HTML)
+        logger.error('Failed minestatus: ' + str(e))
+
+
+@dp.message_handler(commands=['mcstart', 'mc'])
+async def mine_start(message: types.Message):
+    logger.info("mcstart request")
+    try:
+        try:
+            if await is_old_message(message):
+                return
+            await message.delete()
+        except Exception as e:
+            logger.error('Failed minestatus: ' + str(e))
+            return
+
+        if message.chat.id != -1001531643521 and message.chat.id != -1001567412048:
+            return
+
+        aternos = Client.from_credentials(ATERNOS_LOGIN, ATERNOS_PASSWORD)
+        servers = aternos.list_servers(cache=False)
+        myserv = None
+        for x in range(len(servers)):
+            logger.info(servers[x].address)
+            if ATERNOS_VOLGA_NAME in str(servers[x].address) or ATERNOS_VOLGA_NAME in str(servers[x].address):
+                myserv = servers[x]
+        if myserv is None:
+            await message.answer('Сервер не найден', parse_mode=ParseMode.HTML)
+            return
+        logger.info(myserv.status)
+        if myserv.status == 'online':
+            await message.answer(message.from_user.get_mention(as_html=True) +', сервер в данный момент запущен', parse_mode=ParseMode.HTML)
+            return
+        if myserv.status == 'starting' or myserv.status == 'preparing' or myserv.status == 'loading':
+            await message.answer(message.from_user.get_mention(as_html=True) +', сервер запускается...', parse_mode=ParseMode.HTML)
+            return
+        if myserv.status == 'stopping' or myserv.status == 'saving':
+            await message.answer(message.from_user.get_mention(as_html=True) +', сервер останавливается...', parse_mode=ParseMode.HTML)
+            return
+        status_message = await message.answer(message.from_user.get_mention(as_html=True) + ', начался запуск сервера, статус: '
+                                              + myserv.status + ' ' + get_emote_by_server_status(status=myserv.status),
+                             parse_mode=ParseMode.HTML)
+        myserv.start()
+        old_status = myserv.status
+        while True:
+            servers = aternos.list_servers(cache=False)
+            loop_serv = None
+            for x in range(len(servers)):
+                logger.info(servers[x].address)
+                if ATERNOS_VOLGA_NAME in str(servers[x].address) or ATERNOS_VOLGA_NAME in str(servers[x].address):
+                    loop_serv = servers[x]
+            if loop_serv is None:
+                return
+            logger.info(loop_serv.status)
+            if old_status != loop_serv.status:
+                old_status = loop_serv.status
+                await status_message.edit_text(message.from_user.get_mention(as_html=True) + ', начался запуск сервера, статус: '
+                                               + loop_serv.status + ' ' + get_emote_by_server_status(status=loop_serv.status),
+                                 parse_mode=ParseMode.HTML)
+            if old_status == 'online':
+                break
+            await asyncio.sleep(10)
+        servers = aternos.list_servers(cache=False)
+        myserv = None
+        for x in range(len(servers)):
+            logger.info(servers[x].address)
+            if ATERNOS_VOLGA_NAME in str(servers[x].address) or ATERNOS_VOLGA_NAME in str(servers[x].address):
+                myserv = servers[x]
+        if myserv is None:
+            await message.answer('Сервер не найден', parse_mode=ParseMode.HTML)
+            return
+        await status_message.answer(
+            message.from_user.get_mention(as_html=True) + ', сервер запущен, статус: '
+                + myserv.status + ' ' + get_emote_by_server_status(status=myserv.status),
+            parse_mode=ParseMode.HTML)
+    except Exception as e:
+        await message.answer('Произошла ошибка при старте сервера', parse_mode=ParseMode.HTML)
+        logger.error('Failed mcstart: ' + str(e))
+
+
+def get_emote_by_server_status(status: str) -> str:
+    if status == 'online':
+        return '🟩'
+    if status == 'offline':
+        return '🟥'
+    if status == 'stopping':
+        return '🟧'
+    if status == 'preparing':
+        return '🟧'
+    if status == 'loading':
+        return '🟧'
+    if status == 'starting':
+        return '🟧'
+    if status == 'saving':
+        return '🟧'
+    return ''
 
 
 def main():
