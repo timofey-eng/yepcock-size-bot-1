@@ -28,7 +28,7 @@ from python_aternos import Client
 
 # Enable logging
 logging.basicConfig(
-    filename=datetime.now().strftime('logs/log_%d_%m_%Y_%H_%M.log'),
+    # filename=datetime.now().strftime('logs/log_%d_%m_%Y_%H_%M.log'),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S'
 )
 logger = logging.getLogger(__name__)
@@ -45,6 +45,14 @@ ATERNOS_SENTRY_NAME = os.getenv("ATERNOS_SENTRY_NAME")
 bot = Bot(token=TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
+aternos = None
+try:
+    logger.info('aternos: restoring from session...')
+    aternos = Client.restore_session()
+except Exception:
+    logger.info('aternos: error, connect via creds...')
+    aternos = Client.from_credentials(ATERNOS_LOGIN, ATERNOS_PASSWORD)
+aternos.save_session()
 # Init db
 db = TinyDB('users/db.json')
 dbCBR = TinyDB('users/dbCBR.json')
@@ -2231,7 +2239,6 @@ async def mine_status(message: types.Message):
 
         if message.chat.id != -1001531643521 and message.chat.id != -1001567412048:
             return
-        aternos = Client.from_credentials(ATERNOS_LOGIN, ATERNOS_PASSWORD)
         servers = aternos.list_servers(cache=False)
         myserv = servers[0]
         for x in range(len(servers)):
@@ -2265,7 +2272,6 @@ async def mine_start(message: types.Message):
         if message.chat.id != -1001531643521 and message.chat.id != -1001567412048:
             return
 
-        aternos = Client.from_credentials(ATERNOS_LOGIN, ATERNOS_PASSWORD)
         servers = aternos.list_servers(cache=False)
         myserv = None
         for x in range(len(servers)):
