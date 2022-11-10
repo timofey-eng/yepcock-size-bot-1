@@ -12,3 +12,4 @@ pyimgur
 selenium
 webdriver_manager
 aiogram
+python-aternos
