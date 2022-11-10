@@ -2243,7 +2243,7 @@ async def mine_status(message: types.Message):
             return
         logger.info(myserv.status)
         await message.answer(message.from_user.get_mention(as_html=True) + ', статус сервера: ' + myserv.status + ' '
-                             + get_emote_by_server_status(status=myserv.status) + '\nАдрес: ' + myserv.address,
+                             + get_emote_by_server_status(status=myserv.status) + '\nАдрес: ' + myserv.address + ', players: ' + str(myserv.players_count),
                              parse_mode=ParseMode.HTML)
     except Exception as e:
         await message.answer('Произошла ошибка при проверке статуса сервера', parse_mode=ParseMode.HTML)
