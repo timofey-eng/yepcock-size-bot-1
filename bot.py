@@ -24,11 +24,11 @@ from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import InlineQuery, InputTextMessageContent, InlineQueryResultArticle, InlineKeyboardMarkup, \
     InlineKeyboardButton, ParseMode, ChatPermissions
-from python_aternos import Client
+from mcstatus import JavaServer
 
 # Enable logging
 logging.basicConfig(
-    # filename=datetime.now().strftime('logs/log_%d_%m_%Y_%H_%M.log'),
+    filename=datetime.now().strftime('logs/log_%d_%m_%Y_%H_%M.log'),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S'
 )
 logger = logging.getLogger(__name__)
@@ -38,21 +38,10 @@ load_dotenv()
 TOKEN = os.getenv("TG_BOT_TOKEN")
 TWITCH_CLIENT_ID = os.getenv("TWITCH_CLIENT_ID")
 TWITCH_BEARER_TOKEN = os.getenv("TWITCH_BEARER_TOKEN")
-ATERNOS_LOGIN = os.getenv("ATERNOS_LOGIN")
-ATERNOS_PASSWORD = os.getenv("ATERNOS_PASSWORD")
-ATERNOS_VOLGA_NAME = os.getenv("ATERNOS_VOLGA_NAME")
-ATERNOS_SENTRY_NAME = os.getenv("ATERNOS_SENTRY_NAME")
+MINE_IP=os.getenv("MINE_IP")
 bot = Bot(token=TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
-aternos = None
-try:
-    logger.info('aternos: restoring from session...')
-    aternos = Client.restore_session()
-except Exception:
-    logger.info('aternos: error, connect via creds...')
-    aternos = Client.from_credentials(ATERNOS_LOGIN, ATERNOS_PASSWORD)
-aternos.save_session()
 # Init db
 db = TinyDB('users/db.json')
 dbCBR = TinyDB('users/dbCBR.json')
@@ -2239,115 +2228,19 @@ async def mine_status(message: types.Message):
 
         if message.chat.id != -1001531643521 and message.chat.id != -1001567412048:
             return
-        servers = aternos.list_servers(cache=False)
-        myserv = servers[0]
-        for x in range(len(servers)):
-            logger.info(servers[x].address)
-            if ATERNOS_VOLGA_NAME in str(servers[x].address) or ATERNOS_VOLGA_NAME in str(servers[x].address):
-                myserv = servers[x]
-        if myserv is None:
-            await message.answer('Сервер не найден', parse_mode=ParseMode.HTML)
-            return
-        logger.info(myserv.status)
-        await message.answer(message.from_user.get_mention(as_html=True) + ', статус сервера: ' + myserv.status + ' '
-                             + get_emote_by_server_status(status=myserv.status) + '\nАдрес: ' + myserv.address + ', players: ' + str(myserv.players_count),
+        server = JavaServer.lookup(MINE_IP)
+        status = server.status()
+        logger.info(status)
+        if status.players.sample:
+            players_string = ', '.join(p.name for p in status.players.sample)
+        else:
+            players_string = ''
+        print(players_string)
+        await message.answer(message.from_user.get_mention(as_html=True) + ', адрес: ' + MINE_IP + ', players: ' + players_string,
                              parse_mode=ParseMode.HTML)
     except Exception as e:
         await message.answer('Произошла ошибка при проверке статуса сервера', parse_mode=ParseMode.HTML)
         logger.error('Failed minestatus: ' + str(e))
-
-
-@dp.message_handler(commands=['mcstart', 'mc'])
-async def mine_start(message: types.Message):
-    logger.info("mcstart request")
-    try:
-        try:
-            if await is_old_message(message):
-                return
-            await message.delete()
-        except Exception as e:
-            logger.error('Failed minestatus: ' + str(e))
-            return
-
-        if message.chat.id != -1001531643521 and message.chat.id != -1001567412048:
-            return
-
-        servers = aternos.list_servers(cache=False)
-        myserv = None
-        for x in range(len(servers)):
-            logger.info(servers[x].address)
-            if ATERNOS_VOLGA_NAME in str(servers[x].address) or ATERNOS_VOLGA_NAME in str(servers[x].address):
-                myserv = servers[x]
-        if myserv is None:
-            await message.answer('Сервер не найден', parse_mode=ParseMode.HTML)
-            return
-        logger.info(myserv.status)
-        if myserv.status == 'online':
-            await message.answer(message.from_user.get_mention(as_html=True) +', сервер в данный момент запущен', parse_mode=ParseMode.HTML)
-            return
-        if myserv.status == 'starting' or myserv.status == 'preparing' or myserv.status == 'loading':
-            await message.answer(message.from_user.get_mention(as_html=True) +', сервер запускается...', parse_mode=ParseMode.HTML)
-            return
-        if myserv.status == 'stopping' or myserv.status == 'saving':
-            await message.answer(message.from_user.get_mention(as_html=True) +', сервер останавливается...', parse_mode=ParseMode.HTML)
-            return
-        status_message = await message.answer(message.from_user.get_mention(as_html=True) + ', начался запуск сервера, статус: '
-                                              + myserv.status + ' ' + get_emote_by_server_status(status=myserv.status),
-                             parse_mode=ParseMode.HTML)
-        myserv.start()
-        old_status = myserv.status
-        while True:
-            servers = aternos.list_servers(cache=False)
-            loop_serv = None
-            for x in range(len(servers)):
-                logger.info(servers[x].address)
-                if ATERNOS_VOLGA_NAME in str(servers[x].address) or ATERNOS_VOLGA_NAME in str(servers[x].address):
-                    loop_serv = servers[x]
-            if loop_serv is None:
-                return
-            logger.info(loop_serv.status)
-            if old_status != loop_serv.status:
-                old_status = loop_serv.status
-                await status_message.edit_text(message.from_user.get_mention(as_html=True) + ', начался запуск сервера, статус: '
-                                               + loop_serv.status + ' ' + get_emote_by_server_status(status=loop_serv.status),
-                                 parse_mode=ParseMode.HTML)
-            if old_status == 'online':
-                break
-            await asyncio.sleep(10)
-        servers = aternos.list_servers(cache=False)
-        myserv = None
-        for x in range(len(servers)):
-            logger.info(servers[x].address)
-            if ATERNOS_VOLGA_NAME in str(servers[x].address) or ATERNOS_VOLGA_NAME in str(servers[x].address):
-                myserv = servers[x]
-        if myserv is None:
-            await message.answer('Сервер не найден', parse_mode=ParseMode.HTML)
-            return
-        await status_message.answer(
-            message.from_user.get_mention(as_html=True) + ', сервер запущен, статус: '
-                + myserv.status + ' ' + get_emote_by_server_status(status=myserv.status),
-            parse_mode=ParseMode.HTML)
-    except Exception as e:
-        await message.answer('Произошла ошибка при старте сервера', parse_mode=ParseMode.HTML)
-        logger.error('Failed mcstart: ' + str(e))
-
-
-def get_emote_by_server_status(status: str) -> str:
-    if status == 'online':
-        return '🟩'
-    if status == 'offline':
-        return '🟥'
-    if status == 'stopping':
-        return '🟧'
-    if status == 'preparing':
-        return '🟧'
-    if status == 'loading':
-        return '🟧'
-    if status == 'starting':
-        return '🟧'
-    if status == 'saving':
-        return '🟧'
-    return ''
 
 
 def main():
