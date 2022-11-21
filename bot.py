@@ -1142,7 +1142,7 @@ async def switch(message: types.Message) -> None:
                 logger.info("xdd: " + str(username))
                 #await message.delete()
                 await message.answer_sticker(
-                    sticker='CAACAgIAAxkBAAEFlthi_NZPHFXutw4ZIr6mIJJrK1tDiwACXRoAApJdYEtMTTimqH0G8ykE')
+                    sticker='CAACAgIAAxkBAAEGfuFje8J9cAwqGQ9DdlZlgq2y1_xgHAACLCMAAqFd4Evu-xzV3LGr7ysE')
         if str(message.text).lower() == 'сэдкот' or str(message.text).lower() == 'сэдкэт' or str(message.text).lower() == 'sadcat' or str(message.text).lower() == 'сэдкет':
             if not message.from_user.is_bot:
                 logger.info("sadcat: " + str(username))
@@ -1671,12 +1671,26 @@ async def on_new_chat_member(message: types.Message):
 
 @dp.message_handler(content_types=[types.ContentType.STICKER])
 async def handle_sticker(message: types.Message):
-    # logger.info("Sticker file id: " + message.sticker.file_unique_id)
+    logger.info("Sticker file id: " + message.sticker.file_unique_id)
+    try:
+        if message.sticker.file_unique_id == 'AgADLCMAAqFd4Es':
+            logger.info("Sticker: " + str(message.sticker.file_unique_id))
+            await message.answer_sticker(
+                sticker='CAACAgIAAxkBAAEGfuFje8J9cAwqGQ9DdlZlgq2y1_xgHAACLCMAAqFd4Evu-xzV3LGr7ysE')
+    except:
+        pass
     try:
         if message.sticker.file_unique_id == 'AgADXRoAApJdYEs':
             logger.info("Sticker: " + str(message.sticker.file_unique_id))
             await message.answer_sticker(
-                sticker='CAACAgIAAxkBAAEFlthi_NZPHFXutw4ZIr6mIJJrK1tDiwACXRoAApJdYEtMTTimqH0G8ykE')
+                sticker='CAACAgIAAxkBAAEGfuFje8J9cAwqGQ9DdlZlgq2y1_xgHAACLCMAAqFd4Evu-xzV3LGr7ysE')
+    except:
+        pass
+    try:
+        if message.sticker.file_unique_id == 'AgADgCMAAqzQ4Es':
+            logger.info("Sticker: " + str(message.sticker.file_unique_id))
+            await message.answer_sticker(
+                sticker='CAACAgIAAxkBAAEGfuFje8J9cAwqGQ9DdlZlgq2y1_xgHAACLCMAAqFd4Evu-xzV3LGr7ysE')
     except:
         pass
     try:
