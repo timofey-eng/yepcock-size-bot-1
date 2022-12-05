@@ -8,6 +8,7 @@ cd /home/olegsvs/yepcock-size-bot
 mkdir users
 mkdir logs
 mkdir roulette
+mkdir voice_cache
 rm wordle.png
 rm wordle_screenshot_imgur_link.txt
 rm wordle_not_solved_screenshot_imgur_link.txt
@@ -21,3 +22,4 @@ sleep 5
 nohup python3 bot.py > logs/nohup_cold.log &
 nohup python3 wordle.py > logs/nohup_wordle_cold.log &
 nohup python3 stream_checker.py > logs/nohup_stream_checker.log &
+nohup python3 birthday_checker.py > logs/nohup_birthday_checker.log &

@@ -25,6 +25,8 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import InlineQuery, InputTextMessageContent, InlineQueryResultArticle, InlineKeyboardMarkup, \
     InlineKeyboardButton, ParseMode, ChatPermissions
 from mcstatus import JavaServer
+from pathlib import Path
+from stt import STT
 
 # Enable logging
 logging.basicConfig(
@@ -39,6 +41,7 @@ TOKEN = os.getenv("TG_BOT_TOKEN")
 TWITCH_CLIENT_ID = os.getenv("TWITCH_CLIENT_ID")
 TWITCH_BEARER_TOKEN = os.getenv("TWITCH_BEARER_TOKEN")
 MINE_IP=os.getenv("MINE_IP")
+MINE_MAP_URL=os.getenv("MINE_MAP_URL")
 bot = Bot(token=TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
@@ -59,7 +62,7 @@ wordle_filename = 'wordle_screenshot_imgur_link.txt'
 wordle_not_solved_filename = 'wordle_not_solved_screenshot_imgur_link.txt'
 sad_emoji = ['😒', '☹️', '😣', '🥺', '😞', '🙄', '😟', '😠', '😕', '😖', '😫', '😩', '😰', '😭']
 happy_emoji = ['😀', '😏', '😱', '😂', '😁', '😂', '😉', '😊', '😋', '😎', '☺', '😏']
-
+stt = STT()
 
 def get_raspberry_info():
     if platform == "linux":
@@ -1161,12 +1164,20 @@ async def switch(message: types.Message) -> None:
                 #await message.delete()
                 await message.answer_sticker(
                     sticker='CAACAgIAAxkBAAEFmX5i_jcijaQtdlgGZDEknCwJSSg2VgACBgADezwGEd4e2v_l10SjKQQ')
+        if str(message.text).lower() == 'pon' or str(message.text).lower() == 'пон' or str(message.text).lower() == 'пон пон':
+            if not message.from_user.is_bot:
+                logger.info("pon: " + str(username))
+                #await message.delete()
+                await message.answer_sticker(
+                    sticker='CAACAgIAAxkBAAEGgMJjfKIcIL6W7W_ppolriLR9aV1AcAACuB8AAkK98UgFWvmoqa7OYCsE')
         if str(message.text).lower() == 'вж' or str(message.text).lower() == 'd:':
             if not message.from_user.is_bot:
                 logger.info("ВЖ: " + str(username))
                 #await message.delete()
+                #await message.answer_sticker(
+                #    sticker='CAACAgIAAxkBAAEGIDVjTi0-ZF0drKvP0zeUkCtD7QAB-WIAAs8DAALgeVIHt6ePD9s35_cqBA')
                 await message.answer_sticker(
-                    sticker='CAACAgIAAxkBAAEGIDVjTi0-ZF0drKvP0zeUkCtD7QAB-WIAAs8DAALgeVIHt6ePD9s35_cqBA')
+                    sticker='CAACAgIAAxkBAAEGrH5jjCuhIUdYQtwbUuKXuUGI9jekPAACYB4AAhldYUhsrEhnM116LCsE')
         if str(message.text) == '/start@Crocodile_Covid_Bot':
             if not message.from_user.is_bot:
                 logger.info("start Crocodile_Covid_Bot: " + str(username))
@@ -1665,7 +1676,7 @@ async def on_new_chat_member(message: types.Message):
             f"{new_member.get_mention(as_html=True)}, привет! Кого бы трахнул(а) из Вселенной Гарри Поттера? Фантастические твари считаются. 😳 P.S. Если ты новенький, то попытай счастья в рулетке /roulette :)",
             parse_mode=ParseMode.HTML,
         )
-        await asyncio.sleep(60 * 60)
+        await asyncio.sleep(60)
         await bot_message.delete()
 
 
@@ -1697,7 +1708,7 @@ async def handle_sticker(message: types.Message):
         if message.sticker.file_unique_id == 'AgADfxoAAjAf0Uk':
             logger.info("Sticker: " + str(message.sticker.file_unique_id))
             await message.answer_sticker(
-                sticker='CAACAgIAAxkBAAEFmoJi_zgoHrylgXeUlrxUB94RiIwC2AACfxoAAjAf0UnKR8QKFENRVSkE')
+                sticker='CAACAgIAAxkBAAEGmOBjhSSmq9ePfyNxo-6Jxm-6_gI7cwAClB4AAsSAKUgqlgjOm92cnSsE')
     except:
         pass
 
@@ -2228,6 +2239,37 @@ async def duel_assign(message: types.Message):
         logger.error('Failed in duel assign: ' + str(e) + ", line: " + str(exc_tb.tb_lineno))
 
 
+@dp.message_handler(content_types=[
+    types.ContentType.VOICE,
+    types.ContentType.VIDEO_NOTE
+    ]
+)
+async def voice_message_handler(message: types.Message):
+    logger.info("stt request")
+    try:
+        print(message.content_type)
+        if await is_old_message(message):
+            return
+        if message.content_type == types.ContentType.VOICE:
+            file_id = message.voice.file_id
+        elif message.content_type == types.ContentType.VIDEO_NOTE:
+            file_id = message.video_note.file_id
+        else:
+            return
+
+        file = await bot.get_file(file_id)
+        file_path = file.file_path
+        file_on_disk = Path("voice_cache", f"{file_id}.tmp")
+        await bot.download_file(file_path, destination=file_on_disk)
+
+        text = stt.audio_to_text(file_on_disk)
+        if text:
+            await message.reply("Я попытался разборать текст:\n\n" + text)
+        os.remove(file_on_disk)
+    except Exception as e:
+        logger.error('Failed stt: ' + str(e))
+
+
 @dp.message_handler(commands=['minestatus', 'ms'])
 async def mine_status(message: types.Message):
     logger.info("minestatus request")
@@ -2250,7 +2292,8 @@ async def mine_status(message: types.Message):
         else:
             players_string = ''
         print(players_string)
-        await message.answer(message.from_user.get_mention(as_html=True) + ', адрес: ' + MINE_IP + ', players: ' + players_string,
+        await message.answer(message.from_user.get_mention(as_html=True) + ', адрес: ' + MINE_IP + ', players: ' + players_string
++ '\n<a href=\'' + MINE_MAP_URL + '?worldname=world&mapname=flat&zoom=4&x=-51&y=64&z=16\'>Карта</a> / <a href=\'' + MINE_MAP_URL + '?worldname=world&mapname=surface&zoom=4&x=-51&y=64&z=16\'>2.5D Карта</a>',
                              parse_mode=ParseMode.HTML)
     except Exception as e:
         await message.answer('Произошла ошибка при проверке статуса сервера', parse_mode=ParseMode.HTML)
