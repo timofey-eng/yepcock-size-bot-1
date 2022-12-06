@@ -27,6 +27,7 @@ from aiogram.types import InlineQuery, InputTextMessageContent, InlineQueryResul
 from mcstatus import JavaServer
 from pathlib import Path
 from stt import STT
+from pygismeteo import Gismeteo
 
 # Enable logging
 logging.basicConfig(
@@ -63,6 +64,8 @@ wordle_not_solved_filename = 'wordle_not_solved_screenshot_imgur_link.txt'
 sad_emoji = ['😒', '☹️', '😣', '🥺', '😞', '🙄', '😟', '😠', '😕', '😖', '😫', '😩', '😰', '😭']
 happy_emoji = ['😀', '😏', '😱', '😂', '😁', '😂', '😉', '😊', '😋', '😎', '☺', '😏']
 stt = STT()
+gismeteo = Gismeteo()
+
 
 def get_raspberry_info():
     if platform == "linux":
@@ -1080,29 +1083,38 @@ async def weather(message: types.Message):
             await message.delete()
             await bot.delete_message(chat_id=bot_message.chat.id, message_id=bot_message.message_id)
         else:
-            file_url = "https://wttr.in/" + urllib.parse.quote(city.capitalize() + "_transparency=255_0tp_lang=ru.png")
-            logger.info('Weather, city: ' + city + ", url: " + file_url)
-            urllib.request.urlretrieve(file_url, "weather.jpg")
-
+            logger.info('Weather, city: ' + city)
             text_location = "Местоположение не определено"
             try:
-                request = requests.get(url="https://wttr.in/" + urllib.parse.quote(city.capitalize()), timeout=5)
-                text_1_index = request.text.find('Location: ')
-                logger.info("Weather, find location text, index_1: " + str(text_1_index))
-                text_2_index = request.text.rfind('[')
-                logger.info("Weather, find location text, index_2: " + str(text_2_index))
-                text_location = request.text[text_1_index:text_2_index].replace('Location: ', '')
-                text_3_index = text_location.find(' [')
-                logger.info("Weather, find location text, index_3: " + str(text_3_index))
-                text_location = "Местоположение: " + text_location[0:text_3_index]
-                logger.info("Weather, find location text, found location: " + str(text_location))
+                search_results = gismeteo.search.by_query(city)
+                city_id = search_results[0].id
+                city_desc = search_results[0]
+                current = gismeteo.current.by_id(city_id)
+                temper = str(current.temperature.air.c)
+                descrip = str(current.description)
+                print(current.icon)
+                res = ''
+                try:
+                    country_desc_name = ''
+                    if city_desc.country is not None and city_desc.country.name is not None:
+                        country_desc_name = city_desc.country.name + ', '
+                    district_name = ''
+                    if city_desc.district is not None and city_desc.district.name is not None:
+                        district_name = city_desc.district.name + ', '
+                    city_desc_name = ''
+                    if city_desc.name is not None:
+                        city_desc_name = city_desc.name
+                    res = f'Погода {country_desc_name}{district_name}{city_desc_name}: {temper}°C, {descrip[6:-1]}'
+                except:
+                    res = f'Погода {city.capitalize()}: {temper}°C, {descrip[6:-1]}'
             except Exception as e:
                 text_location = "Местоположение не определено"
                 logger.error('Failed to get text location in weather response: ' + str(e))
-            bot_message = await message.reply_photo(caption=text_location, photo=open("weather.jpg", "rb"))
-            await asyncio.sleep(600)
-            await message.delete()
-            await bot_message.delete()
+            icon_path = 'weather_icons/' + current.icon + '.png'
+            if exists(icon_path):
+                bot_message = await message.reply_photo(caption=res, photo=open(icon_path, "rb"))
+            else:
+                bot_message = await message.reply(res, parse_mode=ParseMode.HTML)
     except Exception as e:
         logger.error('Failed to get weather: ' + str(e))
         bot_message = await message.reply(
@@ -2247,7 +2259,7 @@ async def duel_assign(message: types.Message):
 async def voice_message_handler(message: types.Message):
     logger.info("stt request")
     try:
-        print(message.content_type)
+        #print(message.content_type)
         if await is_old_message(message):
             return
         if message.content_type == types.ContentType.VOICE:
@@ -2256,6 +2268,14 @@ async def voice_message_handler(message: types.Message):
             file_id = message.video_note.file_id
         else:
             return
+        member = await message.chat.get_member(message.from_user.id)
+        username = message.from_user.mention
+        logger.info(
+            "Stt request: from chat: " + str(message.chat.title) + ", user_name: " + str(
+                username) + ", message: " + str(message.text) + ", message_id: " + str(
+                message.message_id) + ", user_id: " + str(
+                message.from_user.id) + ", chat_id: " + str(
+                message.chat.id) + ", status: " + str(member.status))
 
         file = await bot.get_file(file_id)
         file_path = file.file_path
