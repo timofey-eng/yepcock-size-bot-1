@@ -2326,6 +2326,31 @@ async def mine_status(message: types.Message):
         logger.error('Failed minestatus: ' + str(e))
 
 
+@dp.channel_post_handler(content_types=[
+    types.ContentType.VOICE,
+    types.ContentType.VIDEO_NOTE,
+    ]
+)
+async def post_handler(message: types.Message) -> None:
+    try:
+        if await is_old_message(message):
+            return
+        if message.chat.id != -1001725391122:
+            return
+        logger.info(
+            "New post: from chat: " + str(message.chat.title)+", channel id: " + str(message.chat.id))
+        if message.content_type == types.ContentType.VOICE:
+            logger.info("New post: content_type: " + str(message.content_type))
+        elif message.content_type == types.ContentType.VIDEO_NOTE:
+            logger.info("New post: content_type: " + str(message.content_type))
+        else:
+            return
+        logger.info("New post: start forwarding...")
+        await message.forward(chat_id=-1001531643521)
+    except Exception as e:
+        logger.error('New post: ' + str(e))
+
+
 def main():
     dp.register_message_handler(switch)
     executor.start_polling(dp, skip_updates=False)
