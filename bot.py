@@ -1087,8 +1087,14 @@ async def weather(message: types.Message):
             text_location = "Местоположение не определено"
             try:
                 search_results = gismeteo.search.by_query(city)
-                city_id = search_results[0].id
-                city_desc = search_results[0]
+                city_id = 0
+                city_desc = None
+                if str(city).lower() == '':
+                    city_desc = search_results[2]
+                    city_id = search_results[2].id
+                else:
+                    city_desc = search_results[0]
+                    city_id = search_results[0].id
                 current = gismeteo.current.by_id(city_id)
                 temper = str(current.temperature.air.c)
                 descrip = str(current.description)
@@ -1685,7 +1691,7 @@ async def on_new_chat_member(message: types.Message):
         logger.info("New user:" + str(new_member_username))
         logger.info("New user: " + str(new_member.username))
         bot_message = await message.reply(
-            f"{new_member.get_mention(as_html=True)}, привет! Кого бы трахнул(а) из Вселенной Гарри Поттера? Фантастические твари считаются. 😳 P.S. Если ты новенький, то попытай счастья в рулетке /roulette :)",
+            f"{new_member.get_mention(as_html=True)}, добро пожаловать! Располагайся 😳 P.S. Если ты новенький, то попытай счастья в рулетке /roulette :)",
             parse_mode=ParseMode.HTML,
         )
         await asyncio.sleep(60)
@@ -2284,7 +2290,7 @@ async def voice_message_handler(message: types.Message):
 
         text = stt.audio_to_text(file_on_disk)
         if text:
-            await message.reply("Я попытался разборать текст:\n\n" + text)
+            await message.reply("Я попытался разобрать текст:\n\n" + text)
         os.remove(file_on_disk)
     except Exception as e:
         logger.error('Failed stt: ' + str(e))
