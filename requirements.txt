@@ -12,6 +12,6 @@ pyimgur
 selenium
 webdriver_manager
 aiogram
-mcstatus
 vosk
 pygismeteo
+python-aternos
