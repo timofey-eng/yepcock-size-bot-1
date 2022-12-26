@@ -1,0 +1,62 @@
+from transformers import MBartTokenizer, MBartForConditionalGeneration
+from transformers import AutoTokenizer
+import subprocess
+import sys
+import logging
+import os
+from collections import deque
+from datetime import datetime
+
+# Enable logging
+logging.basicConfig(
+    filename=datetime.now().strftime('logs/log_summary_%d_%m_%Y_%H_%M.log'),
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger(__name__)
+
+
+class Summary:
+    def __init__(self) -> None:
+        self.model_name = "Kirili4ik/mbart_ruDialogSum"
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.model = MBartForConditionalGeneration.from_pretrained(self.model_name)
+        self.model.eval()
+
+    @staticmethod
+    def tail(filename, n):
+        result = None
+        try:
+            with open(filename) as f:
+                result = ''.join(deque(f, n))
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error('Failed summary_internal: ' + str(e) + ", line: " + str(exc_tb.tb_lineno))
+        return result
+
+
+    async def summary_text(self, text_file_name: str) -> str:
+        summary = ''
+        try:
+            text = self.tail("messages/chat_" + text_file_name, 15)
+            text2 = text.replace("\n", ". ")
+            logger.info("Summary for text: " + text2.rstrip())
+            input_ids = self.tokenizer(
+                [text2.rstrip()],
+                max_length=600,
+                padding="max_length",
+                truncation=True,
+                return_tensors="pt",
+            )["input_ids"]
+
+            output_ids = self.model.generate(
+                input_ids=input_ids,
+                top_k=0,
+                num_beams=3,
+                no_repeat_ngram_size=3
+            )[0]
+
+            summary = self.tokenizer.decode(output_ids, skip_special_tokens=True)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error('Failed summary_internal: ' + str(e) + ", line: " + str(exc_tb.tb_lineno))
+        return summary

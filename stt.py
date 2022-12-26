@@ -5,21 +5,24 @@ import os
 import json
 import subprocess
 from datetime import datetime
+import asyncio
+from dotenv import load_dotenv
 
-bucket_name = "voice-bucket"
-service_account_id = ""
-key_id = ""
-private_key = ""
-jwt = generate_jwt(service_account_id, key_id, private_key)
-session = Session.from_jwt(jwt)
-recognize_long_audio = RecognitionLongAudio(session, service_account_id, bucket_name)
+
+load_dotenv()
+bucket_name = os.getenv("YANDEX_BUCKET_NAME")
+service_account_id = os.getenv("YANDEX_SERVICE_ACC_ID")
+key_id = os.getenv("YANDEX_KEY_ID")
+private_key = os.getenv("YANDEX_PRIVATE_KEY").replace('\\n', '\n').encode()
 
 class STT:
     default_init = {
+        "model_path": "models/vosk",
         "sample_rate": 16000,
     }
 
     def __init__(self,
+                 model_path=None,
                  sample_rate=None,
                  ffmpeg_path=None
                  ) -> None:
@@ -27,6 +30,10 @@ class STT:
 
 
     async def audio_to_text(self, audio_file_name=None) -> str:
+        jwt = generate_jwt(service_account_id, key_id, private_key)
+        session = Session.from_jwt(jwt)
+        recognize_long_audio = RecognitionLongAudio(session, service_account_id, bucket_name)
+
         f = open("voice_cache/" + os.path.basename(audio_file_name) + "processing.wav", "w")
         process = subprocess.Popen(
             ["ffmpeg",

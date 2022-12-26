@@ -24,10 +24,13 @@ from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import InlineQuery, InputTextMessageContent, InlineQueryResultArticle, InlineKeyboardMarkup, \
     InlineKeyboardButton, ParseMode, ChatPermissions
-from mcstatus import JavaServer
 from pathlib import Path
-from stt import STT
+from pygismeteo import Gismeteo
 from python_aternos import Client
+from stt import STT
+from summary import Summary
+import openai
+
 
 # Enable logging
 logging.basicConfig(
@@ -48,14 +51,9 @@ bot = Bot(token=TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 aternos = None
-try:
-    logger.info('aternos: restoring from session...')
-    aternos = Client.restore_session()
-except Exception:
-    logger.info('aternos: error, connect via creds...')
-    aternos = Client.from_credentials(ATERNOS_LOGIN, ATERNOS_PASSWORD)
-aternos.save_session()
-
+stt = STT()
+summary_chat = Summary()
+openai.api_key = os.getenv("OPENAPI_API_KEY")
 # Init db
 db = TinyDB('users/db.json')
 dbCBR = TinyDB('users/dbCBR.json')
@@ -73,7 +71,6 @@ wordle_filename = 'wordle_screenshot_imgur_link.txt'
 wordle_not_solved_filename = 'wordle_not_solved_screenshot_imgur_link.txt'
 sad_emoji = ['😒', '☹️', '😣', '🥺', '😞', '🙄', '😟', '😠', '😕', '😖', '😫', '😩', '😰', '😭']
 happy_emoji = ['😀', '😏', '😱', '😂', '😁', '😂', '😉', '😊', '😋', '😎', '☺', '😏']
-stt = STT()
 gismeteo = Gismeteo()
 
 
@@ -1077,6 +1074,24 @@ async def midas(message: types.Message):
         logger.error('Failed midas: ' + str(e))
 
 
+@dp.message_handler(commands=['summary', 'sum'])
+async def summary(message: types.Message):
+    logger.info("summary request")
+    try:
+        if await is_old_message(message):
+            return
+        await message.delete()
+        analyze_message = await message.answer('Анализирую чат...', parse_mode=ParseMode.HTML)
+        file_name = str(message.chat.id)
+        summary_text = await summary_chat.summary_text(file_name)
+        await analyze_message.delete()
+        logger.info('Summary result:' + str(summary_text))
+        await message.answer('Анализ чата на основе последних 15 сообщений: ' + str(summary_text), parse_mode=ParseMode.HTML)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        logger.error('Failed summary: ' + str(e) + ", line: " + str(exc_tb.tb_lineno))
+
+
 @dp.message_handler(commands=['weather', 'w'])
 async def weather(message: types.Message):
     logger.info("weather request")
@@ -1142,10 +1157,55 @@ async def weather(message: types.Message):
         await bot_message.delete()
 
 
+@dp.message_handler(commands=['ask'])
+async def chatgpt(message: types.Message):
+    logger.info("chatgpt request")
+    try:
+        if await is_old_message(message):
+            return
+        if message.chat.id != -1001531643521 and message.chat.id != -1001567412048:
+            return
+        city = message.get_args().strip()
+        if not city or len(city) == 0:
+            bot_message = await message.reply(
+                "Укажите вопрос после команды",
+                parse_mode=ParseMode.HTML,
+            )
+            await asyncio.sleep(3)
+            await message.delete()
+            await bot.delete_message(chat_id=bot_message.chat.id, message_id=bot_message.message_id)
+        else:
+            logger.info('chatgpt, question: ' + city)
+            prmt = "Q: {qst}\nA:".format(qst=city)
+            response = openai.Completion.create(
+                model="text-davinci-003",
+                prompt=prmt,
+                temperature=0,
+                max_tokens=500,
+                top_p=1.0,
+                frequency_penalty=0.0,
+                presence_penalty=0.0
+            )
+            logger.info('chatgpt, response:' + response.choices[0].text)
+            bot_message = await message.reply('Ответ от ChatGPT: ```\n' + response.choices[0].text + '\n```', parse_mode=ParseMode.MARKDOWN_V2)
+    except Exception as e:
+        logger.error('Failed to chatgpt: ' + str(e))
+        bot_message = await message.reply(
+            "Произошла ошибка при обращении к ChatGPT: " + str(e),
+            parse_mode=ParseMode.HTML,
+        )
+        await asyncio.sleep(10)
+        await message.delete()
+        await bot_message.delete()
+
+
 async def switch(message: types.Message) -> None:
     try:
         member = await message.chat.get_member(message.from_user.id)
         username = message.from_user.mention
+        file_object = open('messages/chat_' + str(message.chat.id), 'a+', encoding='utf-8')
+        file_object.write(str(message.text) + '\n')
+        file_object.close()
         logger.info(
             "New message: from chat: " + str(message.chat.title) + ", user_name: " + str(
                 username) + ", message: " + str(message.text) + ", message_id: " + str(
@@ -1168,6 +1228,12 @@ async def switch(message: types.Message) -> None:
                 "Pizdes 😎",
                 parse_mode=ParseMode.HTML,
             )
+        if 'увы' in str(message.text).lower():
+            if not message.from_user.is_bot:
+                logger.info("xdd: " + str(username))
+                #await message.delete()
+                await message.answer_sticker(
+                    sticker='CAACAgIAAxkBAAEG2fJjnFnjPKRJD4836gUGOovzIGDRUAACqyIAAhfmkEhTcU-1XtA3hSwE')
         if str(message.text).lower() == 'xdd' or str(message.text).lower() == 'хдд':
             if not message.from_user.is_bot:
                 logger.info("xdd: " + str(username))
@@ -2267,45 +2333,6 @@ async def duel_assign(message: types.Message):
         logger.error('Failed in duel assign: ' + str(e) + ", line: " + str(exc_tb.tb_lineno))
 
 
-@dp.message_handler(content_types=[
-    types.ContentType.VOICE,
-    types.ContentType.VIDEO_NOTE
-    ]
-)
-async def voice_message_handler(message: types.Message):
-    logger.info("stt request")
-    try:
-        #print(message.content_type)
-        if await is_old_message(message):
-            return
-        if message.content_type == types.ContentType.VOICE:
-            file_id = message.voice.file_id
-        elif message.content_type == types.ContentType.VIDEO_NOTE:
-            file_id = message.video_note.file_id
-        else:
-            return
-        member = await message.chat.get_member(message.from_user.id)
-        username = message.from_user.mention
-        logger.info(
-            "Stt request: from chat: " + str(message.chat.title) + ", user_name: " + str(
-                username) + ", message: " + str(message.text) + ", message_id: " + str(
-                message.message_id) + ", user_id: " + str(
-                message.from_user.id) + ", chat_id: " + str(
-                message.chat.id) + ", status: " + str(member.status))
-
-        file = await bot.get_file(file_id)
-        file_path = file.file_path
-        file_on_disk = Path("voice_cache", f"{file_id}.tmp")
-        await bot.download_file(file_path, destination=file_on_disk)
-
-        text = stt.audio_to_text(file_on_disk)
-        if text:
-            await message.reply("Я попытался разобрать текст:\n\n" + text)
-        os.remove(file_on_disk)
-    except Exception as e:
-        logger.error('Failed stt: ' + str(e))
-
-
 @dp.message_handler(commands=['minestatus', 'ms'])
 async def mine_status(message: types.Message):
     logger.info("minestatus request")
@@ -2320,6 +2347,13 @@ async def mine_status(message: types.Message):
 
         if message.chat.id != -1001531643521 and message.chat.id != -1001567412048:
             return
+        try:
+            logger.info('aternos: restoring from session...')
+            aternos = Client.restore_session()
+        except Exception:
+            logger.info('aternos: error, connect via creds...')
+            aternos = Client.from_credentials(ATERNOS_LOGIN, ATERNOS_PASSWORD)
+        aternos.save_session()
         servers = aternos.list_servers(cache=False)
         myserv = servers[0]
         for x in range(len(servers)):
@@ -2331,7 +2365,7 @@ async def mine_status(message: types.Message):
             return
         logger.info(myserv.status)
         await message.answer(message.from_user.get_mention(as_html=True) + ', статус сервера: ' + myserv.status + ' '
-                             + get_emote_by_server_status(status=myserv.status) + '\nАдрес: ' + myserv.address + ', players: ' + str(myserv.players_count),
+                             + get_emote_by_server_status(status=myserv.status) + '\nАдрес: ' + myserv.address + ', players: ' + str(myserv.players_list),
                              parse_mode=ParseMode.HTML)
     except Exception as e:
         await message.answer('Произошла ошибка при проверке статуса сервера', parse_mode=ParseMode.HTML)
@@ -2352,7 +2386,13 @@ async def mine_start(message: types.Message):
 
         if message.chat.id != -1001531643521 and message.chat.id != -1001567412048:
             return
-
+        try:
+            logger.info('aternos: restoring from session...')
+            aternos = Client.restore_session()
+        except Exception:
+            logger.info('aternos: error, connect via creds...')
+            aternos = Client.from_credentials(ATERNOS_LOGIN, ATERNOS_PASSWORD)
+        aternos.save_session()
         servers = aternos.list_servers(cache=False)
         myserv = None
         for x in range(len(servers)):
@@ -2431,6 +2471,50 @@ def get_emote_by_server_status(status: str) -> str:
     return ''
 
 
+@dp.message_handler(content_types=[
+    types.ContentType.VOICE,
+    types.ContentType.VIDEO_NOTE
+    ]
+)
+async def voice_message_handler(message: types.Message):
+    logger.info("stt request")
+    try:
+        #print(message.content_type)
+        if message.chat.id != -1001531643521 and message.chat.id != -1001567412048 and message.chat.id != -1001173473651 and message.chat.id != -1001401914025:
+            return
+        if await is_old_message(message):
+            return
+        if message.content_type == types.ContentType.VOICE:
+            file_id = message.voice.file_id
+        elif message.content_type == types.ContentType.VIDEO_NOTE:
+            file_id = message.video_note.file_id
+        else:
+            return
+        member = await message.chat.get_member(message.from_user.id)
+        username = message.from_user.mention
+        logger.info(
+            "Stt request: from chat: " + str(message.chat.title) + ", user_name: " + str(
+                username) + ", message: " + str(message.text) + ", message_id: " + str(
+                message.message_id) + ", user_id: " + str(
+                message.from_user.id) + ", chat_id: " + str(
+                message.chat.id) + ", status: " + str(member.status))
+
+        file = await bot.get_file(file_id)
+        file_path = file.file_path
+        file_on_disk = Path("voice_cache", f"{file_id}.tmp")
+        await bot.download_file(file_path, destination=file_on_disk)
+
+        text = await stt.audio_to_text(file_on_disk)
+        if text:
+            logger.info("Stt request: result: " + text )
+            await message.reply("Я попытался разобрать текст:\n\n" + text)
+        os.remove(file_on_disk)
+    except Exception as e:
+        logger.error('Failed stt: ' + str(e))
+        os.remove(file_on_disk)
+
+
+
 @dp.channel_post_handler(content_types=[
     types.ContentType.VOICE,
     types.ContentType.VIDEO_NOTE,
@@ -2451,7 +2535,8 @@ async def post_handler(message: types.Message) -> None:
         else:
             return
         logger.info("New post: start forwarding...")
-        await message.forward(chat_id=-1001531643521)
+        f_message = await message.forward(chat_id=-1001531643521)
+        await voice_message_handler(f_message)
     except Exception as e:
         logger.error('New post: ' + str(e))
 
