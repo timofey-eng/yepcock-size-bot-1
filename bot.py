@@ -1199,6 +1199,45 @@ async def chatgpt(message: types.Message):
         await bot_message.delete()
 
 
+@dp.message_handler(commands=['image'])
+async def chatgpt(message: types.Message):
+    logger.info("DALL-E image request")
+    try:
+        if await is_old_message(message):
+            return
+        if message.chat.id != -1001531643521 and message.chat.id != -1001567412048:
+            return
+        description = message.get_args().strip()
+        if not description or len(description) == 0:
+            bot_message = await message.reply(
+                "Укажите описание после команды",
+                parse_mode=ParseMode.HTML,
+            )
+            await asyncio.sleep(3)
+            await message.delete()
+            await bot.delete_message(chat_id=bot_message.chat.id, message_id=bot_message.message_id)
+        else:
+            logger.info('DALL-E image, question: ' + description)
+            prmt = "Q: {qst}\nA:".format(qst=description)
+            response = await sync_to_async(openai.Image.create)(
+                prompt=prmt,
+                n=1,
+                size="512x512"
+            )
+            logger.info('DALL-E image, response:' + response['data'][0]['url'])
+            await message.reply('Ответ от DALL-E: <a href="{}">&#8204;</a>'.format(response['data'][0]['url']),
+                                parse_mode=ParseMode.HTML)
+    except Exception as e:
+        logger.error('Failed to DALL-E: ' + str(e))
+        bot_message = await message.reply(
+            "Произошла ошибка при обращении к DALL-E: " + str(e),
+            parse_mode=ParseMode.HTML,
+        )
+        await asyncio.sleep(10)
+        await message.delete()
+        await bot_message.delete()
+
+
 async def switch(message: types.Message) -> None:
     try:
         member = await message.chat.get_member(message.from_user.id)
