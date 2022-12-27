@@ -1165,7 +1165,7 @@ async def chatgpt(message: types.Message):
     try:
         if await is_old_message(message):
             return
-        if message.chat.id != -1001531643521 and message.chat.id != -1001567412048:
+        if message.chat.id != -1001531643521 and message.chat.id != -1001567412048 and message.chat.id != -1001173473651 and message.chat.id != -1001289529855:
             return
         city = message.get_args().strip()
         if not city or len(city) == 0:
@@ -1187,11 +1187,11 @@ async def chatgpt(message: types.Message):
                                                                      frequency_penalty=0.0,
                                                                      presence_penalty=0.0)
             logger.info('chatgpt, response:' + response.choices[0].text)
-            bot_message = await message.reply('Ответ от ChatGPT: ```\n' + response.choices[0].text + '\n```', parse_mode=ParseMode.MARKDOWN_V2)
+            bot_message = await message.reply('Ответ от openai GPT3: ```\n' + response.choices[0].text + '\n```', parse_mode=ParseMode.MARKDOWN_V2)
     except Exception as e:
         logger.error('Failed to chatgpt: ' + str(e))
         bot_message = await message.reply(
-            "Произошла ошибка при обращении к ChatGPT: " + str(e),
+            "Произошла ошибка при обращении к openai GPT3: " + str(e),
             parse_mode=ParseMode.HTML,
         )
         await asyncio.sleep(10)
@@ -1199,8 +1199,8 @@ async def chatgpt(message: types.Message):
         await bot_message.delete()
 
 
-@dp.message_handler(commands=['image'])
-async def chatgpt(message: types.Message):
+#@dp.message_handler(commands=['image'])
+async def dalle(message: types.Message):
     logger.info("DALL-E image request")
     try:
         if await is_old_message(message):
@@ -2519,7 +2519,7 @@ async def voice_message_handler(message: types.Message):
     logger.info("stt request")
     try:
         #print(message.content_type)
-        if message.chat.id != -1001531643521 and message.chat.id != -1001567412048 and message.chat.id != -1001173473651 and message.chat.id != -1001401914025:
+        if message.chat.id != -1001531643521 and message.chat.id != -1001567412048 and message.chat.id != -1001173473651 and message.chat.id != -1001401914025 and message.chat.id != -1001289529855:
             return
         if await is_old_message(message):
             return
