@@ -5,7 +5,6 @@ import os
 import json
 import subprocess
 from datetime import datetime
-import asyncio
 from dotenv import load_dotenv
 
 
@@ -29,7 +28,7 @@ class STT:
         self.sample_rate = sample_rate if sample_rate else STT.default_init["sample_rate"]
 
 
-    async def audio_to_text(self, audio_file_name=None) -> str:
+    def audio_to_text(self, audio_file_name=None) -> str:
         jwt = generate_jwt(service_account_id, key_id, private_key)
         session = Session.from_jwt(jwt)
         recognize_long_audio = RecognitionLongAudio(session, service_account_id, bucket_name)

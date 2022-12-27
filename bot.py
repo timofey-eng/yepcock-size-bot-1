@@ -30,6 +30,7 @@ from python_aternos import Client
 from stt import STT
 from summary import Summary
 import openai
+from asgiref.sync import sync_to_async
 
 
 # Enable logging
@@ -488,7 +489,8 @@ def get_sp():
                '2 https://t.me/addstickers/Kekisy2\n' \
                '3 https://t.me/addstickers/Kekisy3\n' \
                '4 https://t.me/addstickers/kekisy4\n' \
-               '5 https://t.me/addstickers/C_a_k_e_stickers\n' \
+               '5 https://t.me/addstickers/kekisy5\n' \
+               'C_A_K_E https://t.me/addstickers/C_a_k_e_stickers\n' \
                'Emoji кекисы:\n' \
                '1 https://t.me/addemoji/kekisy1\n' \
                '2 https://t.me/addemoji/kekisy2emoji\n' \
@@ -1083,7 +1085,7 @@ async def summary(message: types.Message):
         await message.delete()
         analyze_message = await message.answer('Анализирую чат...', parse_mode=ParseMode.HTML)
         file_name = str(message.chat.id)
-        summary_text = await summary_chat.summary_text(file_name)
+        summary_text = await sync_to_async(summary_chat.summary_text)(file_name)
         await analyze_message.delete()
         logger.info('Summary result:' + str(summary_text))
         await message.answer('Анализ чата на основе последних 15 сообщений: ' + str(summary_text), parse_mode=ParseMode.HTML)
@@ -1177,15 +1179,13 @@ async def chatgpt(message: types.Message):
         else:
             logger.info('chatgpt, question: ' + city)
             prmt = "Q: {qst}\nA:".format(qst=city)
-            response = openai.Completion.create(
-                model="text-davinci-003",
-                prompt=prmt,
-                temperature=0,
-                max_tokens=500,
-                top_p=1.0,
-                frequency_penalty=0.0,
-                presence_penalty=0.0
-            )
+            response = await sync_to_async(openai.Completion.create)(model="text-davinci-003",
+                                                                     prompt=prmt,
+                                                                     temperature=0,
+                                                                     max_tokens=500,
+                                                                     top_p=1.0,
+                                                                     frequency_penalty=0.0,
+                                                                     presence_penalty=0.0)
             logger.info('chatgpt, response:' + response.choices[0].text)
             bot_message = await message.reply('Ответ от ChatGPT: ```\n' + response.choices[0].text + '\n```', parse_mode=ParseMode.MARKDOWN_V2)
     except Exception as e:
@@ -2504,7 +2504,7 @@ async def voice_message_handler(message: types.Message):
         file_on_disk = Path("voice_cache", f"{file_id}.tmp")
         await bot.download_file(file_path, destination=file_on_disk)
 
-        text = await stt.audio_to_text(file_on_disk)
+        text = await sync_to_async(stt.audio_to_text)(file_on_disk)
         if text:
             logger.info("Stt request: result: " + text )
             await message.reply("Я попытался разобрать текст:\n\n" + text)

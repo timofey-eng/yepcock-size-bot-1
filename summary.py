@@ -34,7 +34,7 @@ class Summary:
         return result
 
 
-    async def summary_text(self, text_file_name: str) -> str:
+    def summary_text(self, text_file_name: str) -> str:
         summary = ''
         try:
             text = self.tail("messages/chat_" + text_file_name, 15)
