@@ -25,7 +25,6 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import InlineQuery, InputTextMessageContent, InlineQueryResultArticle, InlineKeyboardMarkup, \
     InlineKeyboardButton, ParseMode, ChatPermissions
 from pathlib import Path
-from pygismeteo import Gismeteo
 from python_aternos import Client
 from stt import STT
 from summary import Summary
@@ -72,7 +71,6 @@ wordle_filename = 'wordle_screenshot_imgur_link.txt'
 wordle_not_solved_filename = 'wordle_not_solved_screenshot_imgur_link.txt'
 sad_emoji = ['😒', '☹️', '😣', '🥺', '😞', '🙄', '😟', '😠', '😕', '😖', '😫', '😩', '😰', '😭']
 happy_emoji = ['😀', '😏', '😱', '😂', '😁', '😂', '😉', '😊', '😋', '😎', '☺', '😏']
-gismeteo = Gismeteo()
 
 
 def get_raspberry_info():
@@ -96,7 +94,6 @@ def get_start_text():
            'Бот поддерживает как инлайн режим\n' \
            'Так и команды(для работы команд добавьте бота в группу и назначьте администратором)\n' \
            '/ping, /p - Погладить бота\n' \
-           '/weather, /w - Узнать погоду, укажите город после команды\n' \
            '/roulette, /r - Русская рулетка: выживи или получи мут на 25 минут, шанс: количество пуль к 6(при выигрыше +(3 * на количество пуль)(по умолчанию одна пуля, количество пуль можно указать после команды(от 1 до 5 пуль)), при проигрыше -количество пуль в очках) КД 1 час\n' \
            '/duel, /d -  Отправить в ответ на сообщение того, кого хочешь вызвать на дуэль с указанием ставки. Очки проигравшего перейдут к выигрывшему\n' \
            '/midas, /m - Отправить в ответ на сообщение того, кого хочешь замидасить(рулетка на мут на 25 минут, шанс 1 к 3). Стоимость 30 очков\n' \
@@ -113,7 +110,6 @@ def get_info_text():
     return 'Бот поддерживает как инлайн режим\n' \
            'Так и команды(для работы команд добавьте бота в группу и назначьте администратором)\n' \
            '/ping, /p - Погладить бота\n' \
-           '/weather, /w - Узнать погоду, укажите город после команды\n' \
            '/roulette, /r - Русская рулетка: выживи или получи мут на 25 минут, шанс: количество пуль к 6(при выигрыше +(3 очка * на количество пуль)(по умолчанию одна пуля, количество пуль можно указать после команды(от 1 до 5 пуль)), при проигрыше -количество пуль в очках) КД 1 час\n' \
            '/duel, /d -  Отправить в ответ на сообщение того, кого хочешь вызвать на дуэль с указанием ставки. Очки проигравшего перейдут к выигрывшему\n' \
            '/midas, /m - Отправить в ответ на сообщение того, кого хочешь замидасить(рулетка на мут на 25 минут, шанс 1 к 3). Стоимость 30 очков\n' \
@@ -229,7 +225,7 @@ key_get_my_cock_result = [
 ]
 
 key_daily_result = [
-    [InlineKeyboardButton('Узнай свои данные 👉👈 🏳️‍🌈 🧠', switch_inline_query_current_chat='')],
+    [InlineKeyboardButton('Узнай свои данные 👉👈 🧠', switch_inline_query_current_chat='')],
 ]
 
 key_get_my_IQ_result = [
@@ -280,7 +276,7 @@ async def inlinequery(inline_query: InlineQuery):
             description=update_template,
             thumb_url='https://i.imgur.com/UxWJh8V.png',
             input_message_content=InputTextMessageContent(sizer_cock(inline_query.from_user.id)
-                                                          + '\n' + homo_sexual(inline_query.from_user.id)
+                                                          #+ '\n' + homo_sexual(inline_query.from_user.id)
                                                           + '\n' + iq_test(inline_query.from_user.id),
                                                           parse_mode=ParseMode.HTML),
             reply_markup=InlineKeyboardMarkup(inline_keyboard=key_daily_result)
@@ -294,15 +290,15 @@ async def inlinequery(inline_query: InlineQuery):
                                                           parse_mode=ParseMode.HTML),
             reply_markup=InlineKeyboardMarkup(inline_keyboard=key_get_my_cock_result)
         ),
-        InlineQueryResultArticle(
-            id=get_inline_id('homo_sexual'),
-            title="Я гомосексуал на...",
-            description=update_template,
-            thumb_url='https://i.imgur.com/1yqokVW.png',
-            input_message_content=InputTextMessageContent(homo_sexual(inline_query.from_user.id),
-                                                          parse_mode=ParseMode.HTML),
-            reply_markup=InlineKeyboardMarkup(inline_keyboard=key_get_my_gay_result)
-        ),
+        #InlineQueryResultArticle(
+        #    id=get_inline_id('homo_sexual'),
+        #    title="Я гомосексуал на...",
+        #    description=update_template,
+        #    thumb_url='https://i.imgur.com/1yqokVW.png',
+        #    input_message_content=InputTextMessageContent(homo_sexual(inline_query.from_user.id),
+        #                                                  parse_mode=ParseMode.HTML),
+        #    reply_markup=InlineKeyboardMarkup(inline_keyboard=key_get_my_gay_result)
+        #),
         InlineQueryResultArticle(
             id=get_inline_id('iq_test'),
             title="Мой IQ...",
@@ -328,14 +324,14 @@ async def inlinequery(inline_query: InlineQuery):
             input_message_content=InputTextMessageContent(random_couple(),
                                                           parse_mode=ParseMode.HTML)
         ),
-        InlineQueryResultArticle(
-            id=get_inline_id('random_gay'),
-            title="Гей дня это...",
-            description=update_template_rnd,
-            thumb_url='https://i.imgur.com/0OCN8kR.png',
-            input_message_content=InputTextMessageContent(random_gay(),
-                                                          parse_mode=ParseMode.HTML)
-        ),
+        #InlineQueryResultArticle(
+        #    id=get_inline_id('random_gay'),
+        #    title="Гей дня это...",
+        #    description=update_template_rnd,
+        #    thumb_url='https://i.imgur.com/0OCN8kR.png',
+        #    input_message_content=InputTextMessageContent(random_gay(),
+        #                                                  parse_mode=ParseMode.HTML)
+        #),
         InlineQueryResultArticle(
             id=get_inline_id('random_beautiful'),
             title="Красавчик дня это...",
@@ -1088,75 +1084,10 @@ async def summary(message: types.Message):
         summary_text = await sync_to_async(summary_chat.summary_text)(file_name)
         await analyze_message.delete()
         logger.info('Summary result:' + str(summary_text))
-        await message.answer('Анализ чата на основе последних 15 сообщений: ' + str(summary_text), parse_mode=ParseMode.HTML)
+        await message.answer('Анализ чата на основе последних 25 сообщений: ' + str(summary_text), parse_mode=ParseMode.HTML)
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         logger.error('Failed summary: ' + str(e) + ", line: " + str(exc_tb.tb_lineno))
-
-
-@dp.message_handler(commands=['weather', 'w'])
-async def weather(message: types.Message):
-    logger.info("weather request")
-    try:
-        if await is_old_message(message):
-            return
-        city = message.get_args().strip()
-        if not city or len(city) == 0:
-            bot_message = await message.reply(
-                "Укажите населённый пункт, пример: <code>/weather Moscow</code>",
-                parse_mode=ParseMode.HTML,
-            )
-            await asyncio.sleep(3)
-            await message.delete()
-            await bot.delete_message(chat_id=bot_message.chat.id, message_id=bot_message.message_id)
-        else:
-            logger.info('Weather, city: ' + city)
-            text_location = "Местоположение не определено"
-            try:
-                search_results = gismeteo.search.by_query(city)
-                city_id = 0
-                city_desc = None
-                if str(city).lower() == '':
-                    city_desc = search_results[2]
-                    city_id = search_results[2].id
-                else:
-                    city_desc = search_results[0]
-                    city_id = search_results[0].id
-                current = gismeteo.current.by_id(city_id)
-                temper = str(current.temperature.air.c)
-                descrip = str(current.description)
-                print(current.icon)
-                res = ''
-                try:
-                    country_desc_name = ''
-                    if city_desc.country is not None and city_desc.country.name is not None:
-                        country_desc_name = city_desc.country.name + ', '
-                    district_name = ''
-                    if city_desc.district is not None and city_desc.district.name is not None:
-                        district_name = city_desc.district.name + ', '
-                    city_desc_name = ''
-                    if city_desc.name is not None:
-                        city_desc_name = city_desc.name
-                    res = f'Погода {country_desc_name}{district_name}{city_desc_name}: {temper}°C, {descrip[6:-1]}'
-                except:
-                    res = f'Погода {city.capitalize()}: {temper}°C, {descrip[6:-1]}'
-            except Exception as e:
-                text_location = "Местоположение не определено"
-                logger.error('Failed to get text location in weather response: ' + str(e))
-            icon_path = 'weather_icons/' + current.icon + '.png'
-            if exists(icon_path):
-                bot_message = await message.reply_photo(caption=res, photo=open(icon_path, "rb"))
-            else:
-                bot_message = await message.reply(res, parse_mode=ParseMode.HTML)
-    except Exception as e:
-        logger.error('Failed to get weather: ' + str(e))
-        bot_message = await message.reply(
-            "Произошла ошибка при получении погоды",
-            parse_mode=ParseMode.HTML,
-        )
-        await asyncio.sleep(3)
-        await message.delete()
-        await bot_message.delete()
 
 
 @dp.message_handler(commands=['ask'])
@@ -1166,6 +1097,9 @@ async def chatgpt(message: types.Message):
         if await is_old_message(message):
             return
         if message.chat.id != -1001531643521 and message.chat.id != -1001567412048 and message.chat.id != -1001173473651 and message.chat.id != -1001289529855:
+            return
+        if str(message.from_user.id) == "212693933":
+            await message.reply('Ответ от OpenAI GPT3: ```\n' + 'Я тебе больше не буду отвечать, ты обзываешься!' + '\n```', parse_mode=ParseMode.MARKDOWN_V2)
             return
         city = message.get_args().strip()
         if not city or len(city) == 0:
@@ -1181,17 +1115,17 @@ async def chatgpt(message: types.Message):
             prmt = "Q: {qst}\nA:".format(qst=city)
             response = await sync_to_async(openai.Completion.create)(model="text-davinci-003",
                                                                      prompt=prmt,
-                                                                     temperature=0,
-                                                                     max_tokens=500,
-                                                                     top_p=1.0,
+                                                                     temperature=1.0,
+                                                                     max_tokens=2048,
+                                                                     top_p=0.8,
                                                                      frequency_penalty=0.0,
                                                                      presence_penalty=0.0)
             logger.info('chatgpt, response:' + response.choices[0].text)
-            bot_message = await message.reply('Ответ от openai GPT3: ```\n' + response.choices[0].text + '\n```', parse_mode=ParseMode.MARKDOWN_V2)
+            bot_message = await message.reply('Ответ от OpenAI GPT3: ```\n' + response.choices[0].text + '\n```', parse_mode=ParseMode.MARKDOWN_V2)
     except Exception as e:
         logger.error('Failed to chatgpt: ' + str(e))
         bot_message = await message.reply(
-            "Произошла ошибка при обращении к openai GPT3: " + str(e),
+            "Произошла ошибка при обращении к OpenAI GPT3: " + str(e),
             parse_mode=ParseMode.HTML,
         )
         await asyncio.sleep(10)
@@ -1199,13 +1133,22 @@ async def chatgpt(message: types.Message):
         await bot_message.delete()
 
 
-#@dp.message_handler(commands=['image'])
+@dp.message_handler(commands=['image'])
 async def dalle(message: types.Message):
     logger.info("DALL-E image request")
     try:
         if await is_old_message(message):
             return
-        if message.chat.id != -1001531643521 and message.chat.id != -1001567412048:
+        #if message.chat.id != -1001531643521 and message.chat.id != -1001567412048:
+        #    return
+        if message.from_user.id != 220117151:
+            bot_message = await message.reply(
+                "У вас нет прав для этой команды",
+                parse_mode=ParseMode.HTML,
+            )
+            await asyncio.sleep(3)
+            await message.delete()
+            await bot.delete_message(chat_id=bot_message.chat.id, message_id=bot_message.message_id)
             return
         description = message.get_args().strip()
         if not description or len(description) == 0:
@@ -1273,7 +1216,7 @@ async def switch(message: types.Message) -> None:
                 #await message.delete()
                 await message.answer_sticker(
                     sticker='CAACAgIAAxkBAAEG2fJjnFnjPKRJD4836gUGOovzIGDRUAACqyIAAhfmkEhTcU-1XtA3hSwE')
-        if str(message.text).lower() == 'xdd' or str(message.text).lower() == 'хдд':
+        if 'xdd' in str(message.text).lower() or 'хдд' in str(message.text).lower():
             if not message.from_user.is_bot:
                 logger.info("xdd: " + str(username))
                 #await message.delete()
@@ -1285,7 +1228,7 @@ async def switch(message: types.Message) -> None:
                 #await message.delete()
                 await message.answer_sticker(
                     sticker='CAACAgIAAxkBAAEF3hVjJkoQVbtOAAGcqV864S0BwJIZxmkAAxwAAgxZCUn3jc34CkwKXikE')
-        if str(message.text).lower() == 'kekw' or str(message.text).lower() == 'кекв':
+        if 'kekw' in str(message.text).lower() or 'кекв' in str(message.text).lower():
             if not message.from_user.is_bot:
                 logger.info("kekw: " + str(username))
                 #await message.delete()
@@ -1302,7 +1245,7 @@ async def switch(message: types.Message) -> None:
                 logger.info("pon: " + str(username))
                 #await message.delete()
                 await message.answer_sticker(
-                    sticker='CAACAgIAAxkBAAEGgMJjfKIcIL6W7W_ppolriLR9aV1AcAACuB8AAkK98UgFWvmoqa7OYCsE')
+                    sticker=get_pon_sticker())
         if str(message.text).lower() == 'вж' or str(message.text).lower() == 'd:':
             if not message.from_user.is_bot:
                 logger.info("ВЖ: " + str(username))
@@ -2622,6 +2565,67 @@ def get_dead_quote(mention: str):
         mention + " заставили идти делать уроки",
     ]
     return random.choice(dead_quotes)
+
+
+def get_pon_sticker():
+    pon_sticker = [
+        "CAACAgIAAxkBAAEHJ7NjuRIy1XfdXOt60AX9oaA2Bh6UNwACMh0AAlsmkUumTv__sD7DnC0E",
+        "CAACAgIAAxkBAAEHJ7VjuRI1wcJ7rSQzpjrywaDVyI4QuwACHxoAArBEmUuxVJmB16VUJS0E",
+        "CAACAgIAAxkBAAEHJ7djuRJH7eBllwOgiGQdqWFK_kzokwACTxcAAvtAmEurg6WhIQV7ty0E",
+        "CAACAgIAAxkBAAEHJ7ljuRJKp7v-1oWiLH6GxNKtlEvrfAACcBUAAluGwUsQDkQr6N7gji0E",
+        "CAACAgIAAxkBAAEHJ7tjuRJM6dYLjJSI_tMYL3BP-jQgHAACMhUAAqezwEtR_5Pu2L5JyC0E",
+        "CAACAgIAAxkBAAEHJ71juRJPqXBG1l1bCcA0_QABiF2J8SMAAmoYAAKl2MBLPcez96nf_fotBA",
+        "CAACAgIAAxkBAAEHJ79juRJSpg-bjEQoye85a0-rizAvqQAClBwAAvMwuUnXj8oRV7nk9y0E",
+        "CAACAgIAAxkBAAEHJ8FjuRJUCTlZvYdb89_VGQ2gvb5-CgACRRsAAl5XkUoOcaSH0AZacS0E",
+        "CAACAgIAAxkBAAEHJ8NjuRJWB7gLzxAhNbRWBmaw-vFF6AAC5xYAAjIWmErhozuWys4vaC0E",
+        "CAACAgIAAxkBAAEHJ8VjuRJZj-3NzVtjOJNZumP2QMCrGgAC-xgAAgm-6UrL_L-7Ss6M3S0E",
+        "CAACAgIAAxkBAAEHJ8djuRJbKvGhrNAXkIbDZPwt13oa5wAClRwAAmAI-UrPZfSJhHshGy0E",
+        "CAACAgIAAxkBAAEHJ2VjuRHGUerTQzKslQLmRhZO9BRsywACaRQAAknV4UqUqfiTpOkq0C0E",
+        "CAACAgIAAxkBAAEHJ2djuRHJYlK6Wf8D9TUpY6MNu8vrBgACcxkAAhFf2UouAAG2caPV3zstBA",
+        "CAACAgIAAxkBAAEHJ2ljuRHKU3u-FaGw6oBNpoIyW1428gACUhsAAmEa4Uq7puOnCHZQsS0E",
+        "CAACAgIAAxkBAAEHJ2tjuRHM0gzt8-TgKIYW8aAUKpZHFAACbhsAAhR84UrMCV069wjKry0E",
+        "CAACAgIAAxkBAAEHJ21juRHPxYTaJie9rbtmSn2gKU0gfwACYhoAAn122Uqj5Fu4Q04QDS0E",
+        "CAACAgIAAxkBAAEHJ29juRHRIveqJYWnu8PlGjIgwjJNhAACwRoAApbw2EqyeALX6qX7Fy0E",
+        "CAACAgIAAxkBAAEHJ3FjuRHUKcJaiA80z5rrUjC5DZglLwACjRYAAlGw4Upw79yJW33cgy0E",
+        "CAACAgIAAxkBAAEHJ3NjuRHWG7ESLC60B2ZdDE8LOyVPdQACgCcAAnYx2EqT3Kji6FqtMy0E",
+        "CAACAgIAAxkBAAEHJ3VjuRHZaQz39qvjw0HSd5dxyuZ6dAACrhQAAguO4Eo7KGAgkMiSrC0E",
+        "CAACAgIAAxkBAAEHJ3djuRHbBsPFj_BngpDs8xcGfnvSpgAC4BcAAqyx4Ure85hUk0Owny0E",
+        "CAACAgIAAxkBAAEHJ3ljuRHeQRdUuVQxfpOhJ5FadRdUSwAC2hUAArhMGUuib-zCcumAZC0E",
+        "CAACAgIAAxkBAAEHJ3tjuRHgK9rLEbE43gheLR9KMAQmEAACkBgAAko8EEtZVtqffYZtGC0E",
+        "CAACAgIAAxkBAAEHJ31juRHjZQn7wTGcJjcRaoTAdvs1eAACAhsAAqOLGEtxqbC_159d5S0E",
+        "CAACAgIAAxkBAAEHJ39juRHmWx4FvlyfXz4uNYWQICiXBQACNBYAAmOfIUt1fDiSVYyw4S0E",
+        "CAACAgIAAxkBAAEHJ4FjuRHoQtasIeQFNwj88WnkXQVPaAACfBUAAnB5IUvVTXxo_6DUci0E",
+        "CAACAgIAAxkBAAEHJ4NjuRHrzKphRDKl3g9veV85y0S1TgAC3BMAAlbOIUuYnlS2L3K7FS0E",
+        "CAACAgIAAxkBAAEHJ4VjuRHtxO-v1rpvCj_gSOlfUHTQPAAC5xQAAsV7IEtjlYYQNJz5Ci0E",
+        "CAACAgIAAxkBAAEHJ4djuRHv4gAB5qW7HO7-ze9AopHst7IAAtEUAAKGqiBLen3ouD2B09ItBA",
+        "CAACAgIAAxkBAAEHJ4ljuRHyl0NKEJ5_YuHkHklWmL3oOAACNhgAAg-LGUuwC82Jfq-sUC0E",
+        "CAACAgIAAxkBAAEHJ4tjuRH05EJe3fddBZ_OReHiKeD1iwAC8xcAAuHfIEuMI_h8YtMrky0E",
+        "CAACAgIAAxkBAAEHJ41juRH3BsOwxXPXmJemeGAz1HYH-AACXBYAAsHAIUu13uxwEb0j6i0E",
+        "CAACAgIAAxkBAAEHJ49juRH6J_RfQz_M-pSPJXTb_LvWcAACDxYAAubqGUtNFxMnsNIYSS0E",
+        "CAACAgIAAxkBAAEHJ5FjuRH8Ev3ILsLNFRi8B76PX4_72QACfRIAAhn3IEtHqdOQin-J4y0E",
+        "CAACAgIAAxkBAAEHJ5NjuRIAAdo9sdJNIcsHlPEWHVUE6C8AAkESAAKqOSFLXCYFDpEO118tBA",
+        "CAACAgIAAxkBAAEHJ5VjuRICbp5K6JvlDyWyLw4pDvHtEgACORkAAl7gOUuq5WFbkGJZ9C0E",
+        "CAACAgIAAxkBAAEHJ5djuRIGi9hjVT-GGS0QSvgHsg03zgACuBsAAjebQEsM4J67scsLTS0E",
+        "CAACAgIAAxkBAAEHJ5ljuRII1NtG2JVQMgRwaBaosiG_JQACrhUAAj3wSEv3PAMhx0Ko7i0E",
+        "CAACAgIAAxkBAAEHJ5tjuRILAAHFvZ6o9ZzQfDr3Z0owJ5IAAv8WAAJvrGFLN5dT7Zu1KlMtBA",
+        "CAACAgIAAxkBAAEHJ51juRIOHqE9uC2wC8DZ0jZOqt0YzwACIhoAAnbOYUspZwWlehPEsC0E",
+        "CAACAgIAAxkBAAEHJ59juRIUO30IZGvuR8E2gfNIKF1AawACthcAAsQYYEs9iLaVJDn3gS0E",
+        "CAACAgIAAxkBAAEHJ6FjuRIYBdgng_JYUL_lBKDYRMk_rwACeBkAAvjRYUtYgKOqHb2sgi0E",
+        "CAACAgIAAxkBAAEHJ6NjuRIbMdte_h-ihsm4nodQQNPTJAACQxgAAgJ5YEtg1TbUICFjni0E",
+        "CAACAgIAAxkBAAEHJ6VjuRIeKj3f272SiWo7x2HruWUrTAACORkAAmDSYUuUlKE19QlZCi0E",
+        "CAACAgIAAxkBAAEHJ6djuRIiznUtPndjq6luU1rwt0yz5AACChkAAnMOcEtxJDDRL_v7Ry0E",
+        "CAACAgIAAxkBAAEHJ6ljuRIlZjzlh0YKE9a7e2sLecawUgAC1BkAAuDhmEvQtwx_hCQsnS0E",
+        "CAACAgIAAxkBAAEHJ6tjuRIo7hqd7wEb4mFFwCla9bbqJQACpBsAApjdmEvTWxJ9OXc2uy0E",
+        "CAACAgIAAxkBAAEHJ61juRIqKEDMFoGyVyhrM2jFZtDB-wACzBYAAtmhmEsDblZSAgoQyS0E",
+        "CAACAgIAAxkBAAEHJ69juRItV2OAbEdnmKM2H4zfq9eUogACtRcAArbDmUtq0KeQcciVgS0E",
+        "CAACAgIAAxkBAAEHJ7FjuRIvuny1aFQ0pnHfj5_su4lzjQACOhsAAoaMmEtM641BJNIOnS0E",
+        "CAACAgIAAxkBAAEGgMJjfKIcIL6W7W_ppolriLR9aV1AcAACuB8AAkK98UgFWvmoqa7OYCsE",
+    ]
+    return random.choice(pon_sticker)
+
+
+def find_whole_word(w):
+    return re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search
 
 
 if __name__ == '__main__':

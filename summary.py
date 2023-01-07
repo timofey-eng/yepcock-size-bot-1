@@ -37,7 +37,7 @@ class Summary:
     def summary_text(self, text_file_name: str) -> str:
         summary = ''
         try:
-            text = self.tail("messages/chat_" + text_file_name, 15)
+            text = self.tail("messages/chat_" + text_file_name, 25)
             text2 = text.replace("\n", ". ")
             logger.info("Summary for text: " + text2.rstrip())
             input_ids = self.tokenizer(
