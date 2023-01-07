@@ -8,10 +8,6 @@ from collections import deque
 from datetime import datetime
 
 # Enable logging
-logging.basicConfig(
-    filename=datetime.now().strftime('logs/log_summary_%d_%m_%Y_%H_%M.log'),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S'
-)
 logger = logging.getLogger(__name__)
 
 

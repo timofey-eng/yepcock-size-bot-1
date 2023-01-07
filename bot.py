@@ -7,6 +7,7 @@ import random
 import time
 import json
 import sys
+import re
 from datetime import datetime
 from random import randrange
 from uuid import uuid4
@@ -1093,6 +1094,7 @@ async def summary(message: types.Message):
 @dp.message_handler(commands=['ask'])
 async def chatgpt(message: types.Message):
     logger.info("chatgpt request")
+    sticker = None
     try:
         if await is_old_message(message):
             return
@@ -1113,6 +1115,8 @@ async def chatgpt(message: types.Message):
         else:
             logger.info('chatgpt, question: ' + city)
             prmt = "Q: {qst}\nA:".format(qst=city)
+            sticker = await message.reply_sticker(
+                    sticker='CAACAgQAAxkBAAEHKWxjuZYKFjQBCED8tlJUAmKXwi5SMAAC_gwAAgn7wFLlLvp1j384eC0E')
             response = await sync_to_async(openai.Completion.create)(model="text-davinci-003",
                                                                      prompt=prmt,
                                                                      temperature=1.0,
@@ -1121,6 +1125,8 @@ async def chatgpt(message: types.Message):
                                                                      frequency_penalty=0.0,
                                                                      presence_penalty=0.0)
             logger.info('chatgpt, response:' + response.choices[0].text)
+            await sticker.delete()
+            sticker = None
             bot_message = await message.reply('Ответ от OpenAI GPT3: ```\n' + response.choices[0].text + '\n```', parse_mode=ParseMode.MARKDOWN_V2)
     except Exception as e:
         logger.error('Failed to chatgpt: ' + str(e))
@@ -1128,6 +1134,8 @@ async def chatgpt(message: types.Message):
             "Произошла ошибка при обращении к OpenAI GPT3: " + str(e),
             parse_mode=ParseMode.HTML,
         )
+        if sticker:
+            await sticker.delete()
         await asyncio.sleep(10)
         await message.delete()
         await bot_message.delete()
@@ -1210,48 +1218,47 @@ async def switch(message: types.Message) -> None:
                 "Pizdes 😎",
                 parse_mode=ParseMode.HTML,
             )
-        if 'увы' in str(message.text).lower():
+        if find_whole_word('увы')(str(message.text)):
             if not message.from_user.is_bot:
                 logger.info("xdd: " + str(username))
-                #await message.delete()
                 await message.answer_sticker(
                     sticker='CAACAgIAAxkBAAEG2fJjnFnjPKRJD4836gUGOovzIGDRUAACqyIAAhfmkEhTcU-1XtA3hSwE')
-        if 'xdd' in str(message.text).lower() or 'хдд' in str(message.text).lower():
+        if find_whole_word('изи')(str(message.text)) or find_whole_word('ez')(str(message.text)) or find_whole_word('ezy')(str(message.text)):
+            if not message.from_user.is_bot:
+                logger.info("ez: " + str(username))
+                await message.answer_sticker(
+                    sticker='CAACAgIAAxkBAAEHKexjuaZv0tviCBQRzYNaI48fkJopjwACNwQAAug89xr6qohIKZJqPi0E')
+        if find_whole_word('xdd')(str(message.text)) or find_whole_word('хдд')(str(message.text)):
             if not message.from_user.is_bot:
                 logger.info("xdd: " + str(username))
-                #await message.delete()
                 await message.answer_sticker(
                     sticker='CAACAgIAAxkBAAEGfuFje8J9cAwqGQ9DdlZlgq2y1_xgHAACLCMAAqFd4Evu-xzV3LGr7ysE')
-        if str(message.text).lower() == 'сэдкот' or str(message.text).lower() == 'сэдкэт' or str(message.text).lower() == 'sadcat' or str(message.text).lower() == 'сэдкет':
+        if find_whole_word('сэдкот')(str(message.text)) or \
+                find_whole_word('сэдкэт')(str(message.text)) or \
+                find_whole_word('sadcat')(str(message.text)) or \
+                find_whole_word('сэдкет')(str(message.text)):
             if not message.from_user.is_bot:
                 logger.info("sadcat: " + str(username))
-                #await message.delete()
                 await message.answer_sticker(
                     sticker='CAACAgIAAxkBAAEF3hVjJkoQVbtOAAGcqV864S0BwJIZxmkAAxwAAgxZCUn3jc34CkwKXikE')
-        if 'kekw' in str(message.text).lower() or 'кекв' in str(message.text).lower():
+        if find_whole_word('кекв')(str(message.text)) or find_whole_word('kekw')(str(message.text)):
             if not message.from_user.is_bot:
                 logger.info("kekw: " + str(username))
-                #await message.delete()
                 await message.answer_sticker(
                     sticker='CAACAgIAAxkBAAEGDBNjQzV8y_M8IpJBwPocAcTz84cCeAAC3QMAAuB5UgdGIcN1K0HvwSoE')
-        if str(message.text).lower() == 'pog' or str(message.text).lower() == 'пог':
+        if find_whole_word('pog')(str(message.text)) or find_whole_word('пог')(str(message.text)):
             if not message.from_user.is_bot:
                 logger.info("pog: " + str(username))
-                #await message.delete()
                 await message.answer_sticker(
                     sticker='CAACAgIAAxkBAAEFmX5i_jcijaQtdlgGZDEknCwJSSg2VgACBgADezwGEd4e2v_l10SjKQQ')
-        if str(message.text).lower() == 'pon' or str(message.text).lower() == 'пон' or str(message.text).lower() == 'пон пон':
+        if find_whole_word('пон')(str(message.text)) or find_whole_word('pon')(str(message.text)):
             if not message.from_user.is_bot:
                 logger.info("pon: " + str(username))
-                #await message.delete()
                 await message.answer_sticker(
                     sticker=get_pon_sticker())
-        if str(message.text).lower() == 'вж' or str(message.text).lower() == 'd:':
+        if  str(message.text).lower() == 'd:' or find_whole_word('вж')(str(message.text)):
             if not message.from_user.is_bot:
                 logger.info("ВЖ: " + str(username))
-                #await message.delete()
-                #await message.answer_sticker(
-                #    sticker='CAACAgIAAxkBAAEGIDVjTi0-ZF0drKvP0zeUkCtD7QAB-WIAAs8DAALgeVIHt6ePD9s35_cqBA')
                 await message.answer_sticker(
                     sticker='CAACAgIAAxkBAAEGrH5jjCuhIUdYQtwbUuKXuUGI9jekPAACYB4AAhldYUhsrEhnM116LCsE')
         if str(message.text) == '/start@Crocodile_Covid_Bot':
@@ -1259,12 +1266,12 @@ async def switch(message: types.Message) -> None:
                 logger.info("start Crocodile_Covid_Bot: " + str(username))
                 await message.reply_sticker(
                     sticker='CAACAgIAAxkBAAEFmZdi_kfHvMkYVkaYF3U03XvpLnLrUAAC4h4AAsevYUua8eZ4oiN5hCkE')
-        if 'genshin' in str(message.text).lower() or 'геншин' in str(message.text).lower():
+        if find_whole_word('genshin')(str(message.text)) or find_whole_word('геншин')(str(message.text)):
             if not message.from_user.is_bot:
                 logger.info("genshin: " + str(username))
                 # await message.reply_sticker(
                 #    sticker='CAACAgIAAxkBAAEFpB5jA2hRcSZ0Voo1LpQpuLDjw2vixAACDRcAAmRKKUnevtb6fKAwdSkE')
-        if '300' in str(message.text).lower().split() or 'триста' in str(message.text).lower().split():
+        if find_whole_word('300')(str(message.text)) or find_whole_word('триста')(str(message.text)):
             if not message.from_user.is_bot:
                 logger.info("300: " + str(username))
                 await message.reply(text='Отсоси у тракториста 😊')
