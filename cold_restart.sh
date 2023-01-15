@@ -16,9 +16,7 @@ mkdir -p ../bot_backup/users_backups_$d/
 mkdir -p ../bot_backup/logs_$d/
 mv users/* ../bot_backup/users_backups_$d/
 mv logs/* ../bot_backup/logs_$d/
-#nohup python3 get_members.py > logs/nohup_get_members_cold.log &
 sleep 5
-#nohup python3 delete_bot_own_messages.py > logs/nohup_del_last_messages_cold.log &
 nohup python3 bot.py > logs/nohup_cold.log &
 nohup python3 wordle.py > logs/nohup_wordle_cold.log &
 nohup python3 stream_checker.py > logs/nohup_stream_checker.log &

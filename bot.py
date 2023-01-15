@@ -238,25 +238,6 @@ key_get_my_gay_result = [
 ]
 
 
-def random_gay():
-    user_text = get_random_gay_user_from_csv()
-    text = '🎉 Сегодня ГЕЙ 🌈 дня - ' + user_text
-    return text
-
-
-def random_beautiful():
-    user_text = get_random_beautiful_user_from_csv()
-    text = '🎉 Сегодня КРАСАВЧИК 😊 дня - ' + user_text
-    return text
-
-
-def random_couple():
-    user1_text = get_random_couple_user_from_csv(is_first=True)
-    user2_text = get_random_couple_user_from_csv(is_first=False)
-    text = '🎉 Сегодня ПАРА 😳 дня - ' + user1_text + ' и ' + user2_text + ' 💕'
-    return text
-
-
 @dp.chosen_inline_handler()
 async def on_result_chosen(message: types.Message):
     logger.info(message)
@@ -315,30 +296,6 @@ async def inlinequery(inline_query: InlineQuery):
             description=update_template,
             thumb_url='https://i.imgur.com/gpiM7LN.png',
             input_message_content=InputTextMessageContent(random_rollcall(),
-                                                          parse_mode=ParseMode.HTML)
-        ),
-        InlineQueryResultArticle(
-            id=get_inline_id('random_couple'),
-            title="Пара дня это...",
-            description=update_template_rnd,
-            thumb_url='https://i.imgur.com/woBmbIn.png',
-            input_message_content=InputTextMessageContent(random_couple(),
-                                                          parse_mode=ParseMode.HTML)
-        ),
-        InlineQueryResultArticle(
-            id=get_inline_id('random_gay'),
-            title="Гей дня это...",
-            description=update_template_rnd,
-            thumb_url='https://i.imgur.com/0OCN8kR.png',
-            input_message_content=InputTextMessageContent(random_gay(),
-                                                          parse_mode=ParseMode.HTML)
-        ),
-        InlineQueryResultArticle(
-            id=get_inline_id('random_beautiful'),
-            title="Красавчик дня это...",
-            description=update_template_rnd,
-            thumb_url='https://i.imgur.com/YoLgEiP.png',
-            input_message_content=InputTextMessageContent(random_beautiful(),
                                                           parse_mode=ParseMode.HTML)
         ),
         InlineQueryResultArticle(
@@ -638,37 +595,6 @@ async def ping(message: types.Message):
         logger.error('Failed anekdot: ' + str(e))
 
 
-
-def get_random_gay_user_from_csv():
-    try:
-        old_user_id = dbRANDOM.search(Query().gay_id.exists())
-        old_user_name = dbRANDOM.search(Query().gay_name.exists())
-
-        if not old_user_id:
-            logger.info('get_random_gay: old_user_id not found, get random...')
-            df = pd.read_csv('members.csv', delimiter=",", lineterminator="\n")
-            random_user = df.sample()
-            user_id = random_user.get('user id').to_numpy()
-            user_name1 = random_user.get('username').to_numpy()
-            # user_name2 = random_user.get('name').to_numpy()
-            logger.info('get_random_gay: UserName:'f"{user_name1[0]=}")  # f"{user_name2=}")
-            # if is_nan(user_name1):
-            #     user_name = user_name2[0]
-            # else:
-            #     user_name = user_name1[0]
-            user_name = user_name1[0]
-            logger.info('get_random_gay: Random user:'f"{user_id[0]=}"f"{user_name=}")
-            dbRANDOM.insert({'gay_id': int(user_id[0])})
-            dbRANDOM.insert({'gay_name': str(user_name)})
-            return get_user_link_text(user_id[0], user_name)
-        else:
-            logger.info('get_random_gay: old_user_id found')
-            return get_user_link_text(old_user_id[0]['gay_id'], old_user_name[0]['gay_name'])
-    except Exception as e:
-        logger.error('Failed to get_random_gay_user_from_csv: ' + str(e))
-        return error_template
-
-
 def get_user_link_text(user_id, user_name):
     text = '<a href="tg://user?id=%s' % user_id + '">@%s' % user_name + '</a>'
     logger.info('get_user_link_text: 'f"{text=}")
@@ -677,69 +603,6 @@ def get_user_link_text(user_id, user_name):
 
 def is_nan(num):
     return num != num
-
-
-def get_random_couple_user_from_csv(is_first: bool):
-    try:
-        if is_first:
-            old_user_id = dbRANDOM.search(Query().couple_first_id.exists())
-            old_user_name = dbRANDOM.search(Query().couple_first_name.exists())
-        else:
-            old_user_id = dbRANDOM.search(Query().couple_second_id.exists())
-            old_user_name = dbRANDOM.search(Query().couple_second_name.exists())
-
-        if not old_user_id:
-            logger.info('get_random_couple: old_user_id not found, get random...')
-            df = pd.read_csv('members.csv', delimiter=",", lineterminator="\n")
-            random_user = df.sample()
-            user_id = random_user.get('user id').to_numpy()
-            user_name1 = random_user.get('username').to_numpy()
-            logger.info('get_random_couple: UserName:'f"{user_name1[0]=}")
-            user_name = user_name1[0]
-            logger.info('get_random_couple: Random user:'f"{user_id[0]=}"f"{user_name=}")
-            if is_first:
-                dbRANDOM.insert({'couple_first_id': int(user_id[0])})
-                dbRANDOM.insert({'couple_first_name': str(user_name)})
-            else:
-                dbRANDOM.insert({'couple_second_id': int(user_id[0])})
-                dbRANDOM.insert({'couple_second_name': str(user_name)})
-            return get_user_link_text(user_id[0], user_name)
-        else:
-            logger.info('get_random_couple: old_user_id found')
-            if is_first:
-                return get_user_link_text(old_user_id[0]['couple_first_id'],
-                                          old_user_name[0]['couple_first_name'])
-            else:
-                return get_user_link_text(old_user_id[0]['couple_second_id'],
-                                          old_user_name[0]['couple_second_name'])
-    except Exception as e:
-        logger.error('Failed to get_random_couple_user_from_csv: ' + str(e))
-        return error_template
-
-
-def get_random_beautiful_user_from_csv():
-    try:
-        old_user_id = dbRANDOM.search(Query().beautiful_id.exists())
-        old_user_name = dbRANDOM.search(Query().beautiful_name.exists())
-
-        if not old_user_id:
-            logger.info('get_random_beautiful: old_user_id not found, get random...')
-            df = pd.read_csv('members.csv', delimiter=",", lineterminator="\n")
-            random_user = df.sample()
-            user_id = random_user.get('user id').to_numpy()
-            user_name1 = random_user.get('username').to_numpy()
-            logger.info('get_random_beautiful: UserName:'f"{user_name1[0]=}")
-            user_name = user_name1[0]
-            logger.info('get_random_beautiful: Random user:'f"{user_id[0]=}"f"{user_name=}")
-            dbRANDOM.insert({'beautiful_id': int(user_id[0])})
-            dbRANDOM.insert({'beautiful_name': str(user_name)})
-            return get_user_link_text(user_id[0], user_name)
-        else:
-            logger.info('get_random_beautiful: old_user_id found')
-            return get_user_link_text(old_user_id[0]['beautiful_id'], old_user_name[0]['beautiful_name'])
-    except Exception as e:
-        logger.error('Failed to get_random_beautiful_user_from_csv: ' + str(e))
-        return error_template
 
 
 @dp.message_handler(commands=['roulette', 'r'])
