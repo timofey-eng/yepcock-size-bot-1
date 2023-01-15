@@ -61,7 +61,7 @@ async def check_birthday():
                             if current_month == birthday_month:
                                 if current_day == birthday_day:
                                     user['last_sent_in_year'] = int(current_year)
-                                    msg = '@' + nickname + ', С Днем Рождения! 🍾🎁🎊🎂🎉🎈'
+                                    msg = '@' + nickname + ', С Днем Рождения! 🍾🎁🎊🎂🎉🎈🥳'
                                     await bot.send_message(chat_id=-1001531643521, text=msg)
                     file.seek(0)
                     json.dump(json_file, file, indent=4)

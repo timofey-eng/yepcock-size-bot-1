@@ -54,7 +54,7 @@ dp = Dispatcher(bot, storage=storage)
 aternos = None
 stt = STT()
 summary_chat = Summary()
-openai.api_key = os.getenv("OPENAPI_API_KEY")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 # Init db
 db = TinyDB('users/db.json')
 dbCBR = TinyDB('users/dbCBR.json')
@@ -226,7 +226,7 @@ key_get_my_cock_result = [
 ]
 
 key_daily_result = [
-    [InlineKeyboardButton('Узнай свои данные 👉👈 🧠', switch_inline_query_current_chat='')],
+    [InlineKeyboardButton('Узнай свои данные 👉👈 🏳️‍🌈 🧠', switch_inline_query_current_chat='')],
 ]
 
 key_get_my_IQ_result = [
@@ -277,7 +277,7 @@ async def inlinequery(inline_query: InlineQuery):
             description=update_template,
             thumb_url='https://i.imgur.com/UxWJh8V.png',
             input_message_content=InputTextMessageContent(sizer_cock(inline_query.from_user.id)
-                                                          #+ '\n' + homo_sexual(inline_query.from_user.id)
+                                                          + '\n' + homo_sexual(inline_query.from_user.id)
                                                           + '\n' + iq_test(inline_query.from_user.id),
                                                           parse_mode=ParseMode.HTML),
             reply_markup=InlineKeyboardMarkup(inline_keyboard=key_daily_result)
@@ -291,15 +291,15 @@ async def inlinequery(inline_query: InlineQuery):
                                                           parse_mode=ParseMode.HTML),
             reply_markup=InlineKeyboardMarkup(inline_keyboard=key_get_my_cock_result)
         ),
-        #InlineQueryResultArticle(
-        #    id=get_inline_id('homo_sexual'),
-        #    title="Я гомосексуал на...",
-        #    description=update_template,
-        #    thumb_url='https://i.imgur.com/1yqokVW.png',
-        #    input_message_content=InputTextMessageContent(homo_sexual(inline_query.from_user.id),
-        #                                                  parse_mode=ParseMode.HTML),
-        #    reply_markup=InlineKeyboardMarkup(inline_keyboard=key_get_my_gay_result)
-        #),
+        InlineQueryResultArticle(
+            id=get_inline_id('homo_sexual'),
+            title="Я гомосексуал на...",
+            description=update_template,
+            thumb_url='https://i.imgur.com/1yqokVW.png',
+            input_message_content=InputTextMessageContent(homo_sexual(inline_query.from_user.id),
+                                                          parse_mode=ParseMode.HTML),
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=key_get_my_gay_result)
+        ),
         InlineQueryResultArticle(
             id=get_inline_id('iq_test'),
             title="Мой IQ...",
@@ -325,14 +325,14 @@ async def inlinequery(inline_query: InlineQuery):
             input_message_content=InputTextMessageContent(random_couple(),
                                                           parse_mode=ParseMode.HTML)
         ),
-        #InlineQueryResultArticle(
-        #    id=get_inline_id('random_gay'),
-        #    title="Гей дня это...",
-        #    description=update_template_rnd,
-        #    thumb_url='https://i.imgur.com/0OCN8kR.png',
-        #    input_message_content=InputTextMessageContent(random_gay(),
-        #                                                  parse_mode=ParseMode.HTML)
-        #),
+        InlineQueryResultArticle(
+            id=get_inline_id('random_gay'),
+            title="Гей дня это...",
+            description=update_template_rnd,
+            thumb_url='https://i.imgur.com/0OCN8kR.png',
+            input_message_content=InputTextMessageContent(random_gay(),
+                                                          parse_mode=ParseMode.HTML)
+        ),
         InlineQueryResultArticle(
             id=get_inline_id('random_beautiful'),
             title="Красавчик дня это...",
@@ -1098,10 +1098,7 @@ async def chatgpt(message: types.Message):
     try:
         if await is_old_message(message):
             return
-        if message.chat.id != -1001531643521 and message.chat.id != -1001567412048 and message.chat.id != -1001173473651 and message.chat.id != -1001289529855:
-            return
-        if str(message.from_user.id) == "212693933":
-            await message.reply('Ответ от OpenAI GPT3: ```\n' + 'Я тебе больше не буду отвечать, ты обзываешься!' + '\n```', parse_mode=ParseMode.MARKDOWN_V2)
+        if message.chat.id != -1001531643521 and message.chat.id != -1001567412048 and message.chat.id != -1001173473651 and message.chat.id != -1001289529855 and message.chat.id != -1001401914025:
             return
         city = message.get_args().strip()
         if not city or len(city) == 0:
@@ -1116,7 +1113,7 @@ async def chatgpt(message: types.Message):
             logger.info('chatgpt, question: ' + city)
             prmt = "Q: {qst}\nA:".format(qst=city)
             sticker = await message.reply_sticker(
-                    sticker='CAACAgQAAxkBAAEHKWxjuZYKFjQBCED8tlJUAmKXwi5SMAAC_gwAAgn7wFLlLvp1j384eC0E')
+                    sticker=get_search_sticker())
             response = await sync_to_async(openai.Completion.create)(model="text-davinci-003",
                                                                      prompt=prmt,
                                                                      temperature=1.0,
@@ -1127,7 +1124,7 @@ async def chatgpt(message: types.Message):
             logger.info('chatgpt, response:' + response.choices[0].text)
             await sticker.delete()
             sticker = None
-            bot_message = await message.reply('Ответ от OpenAI GPT3: ```\n' + response.choices[0].text + '\n```', parse_mode=ParseMode.MARKDOWN_V2)
+            bot_message = await message.reply('Ответ от OpenAI GPT3: ```\n' + response.choices[0].text.replace('```','') + '\n```', parse_mode=ParseMode.MARKDOWN_V2)
     except Exception as e:
         logger.error('Failed to chatgpt: ' + str(e))
         bot_message = await message.reply(
@@ -1136,9 +1133,9 @@ async def chatgpt(message: types.Message):
         )
         if sticker:
             await sticker.delete()
-        await asyncio.sleep(10)
-        await message.delete()
-        await bot_message.delete()
+        #await asyncio.sleep(10)
+        #await message.delete()
+        #await bot_message.delete()
 
 
 @dp.message_handler(commands=['image'])
@@ -1147,17 +1144,21 @@ async def dalle(message: types.Message):
     try:
         if await is_old_message(message):
             return
-        #if message.chat.id != -1001531643521 and message.chat.id != -1001567412048:
-        #    return
-        if message.from_user.id != 220117151:
+        if message.chat.id != -1001531643521 and message.chat.id != -1001567412048:
             bot_message = await message.reply(
                 "У вас нет прав для этой команды",
                 parse_mode=ParseMode.HTML,
             )
-            await asyncio.sleep(3)
-            await message.delete()
-            await bot.delete_message(chat_id=bot_message.chat.id, message_id=bot_message.message_id)
             return
+        #if message.from_user.id != 220117151:
+        #    bot_message = await message.reply(
+        #        "У вас нет прав для этой команды",
+        #        parse_mode=ParseMode.HTML,
+        #    )
+        #    await asyncio.sleep(3)
+        #    await message.delete()
+        #    await bot.delete_message(chat_id=bot_message.chat.id, message_id=bot_message.message_id)
+        #    return
         description = message.get_args().strip()
         if not description or len(description) == 0:
             bot_message = await message.reply(
@@ -1184,9 +1185,9 @@ async def dalle(message: types.Message):
             "Произошла ошибка при обращении к DALL-E: " + str(e),
             parse_mode=ParseMode.HTML,
         )
-        await asyncio.sleep(10)
-        await message.delete()
-        await bot_message.delete()
+        #await asyncio.sleep(10)
+        #await message.delete()
+        #await bot_message.delete()
 
 
 async def switch(message: types.Message) -> None:
@@ -2618,7 +2619,6 @@ def get_pon_sticker():
         "CAACAgIAAxkBAAEHJ51juRIOHqE9uC2wC8DZ0jZOqt0YzwACIhoAAnbOYUspZwWlehPEsC0E",
         "CAACAgIAAxkBAAEHJ59juRIUO30IZGvuR8E2gfNIKF1AawACthcAAsQYYEs9iLaVJDn3gS0E",
         "CAACAgIAAxkBAAEHJ6FjuRIYBdgng_JYUL_lBKDYRMk_rwACeBkAAvjRYUtYgKOqHb2sgi0E",
-        "CAACAgIAAxkBAAEHJ6NjuRIbMdte_h-ihsm4nodQQNPTJAACQxgAAgJ5YEtg1TbUICFjni0E",
         "CAACAgIAAxkBAAEHJ6VjuRIeKj3f272SiWo7x2HruWUrTAACORkAAmDSYUuUlKE19QlZCi0E",
         "CAACAgIAAxkBAAEHJ6djuRIiznUtPndjq6luU1rwt0yz5AACChkAAnMOcEtxJDDRL_v7Ry0E",
         "CAACAgIAAxkBAAEHJ6ljuRIlZjzlh0YKE9a7e2sLecawUgAC1BkAAuDhmEvQtwx_hCQsnS0E",
@@ -2629,6 +2629,16 @@ def get_pon_sticker():
         "CAACAgIAAxkBAAEGgMJjfKIcIL6W7W_ppolriLR9aV1AcAACuB8AAkK98UgFWvmoqa7OYCsE",
     ]
     return random.choice(pon_sticker)
+
+
+def get_search_sticker():
+    search_sticker = [
+        "CAACAgIAAxkBAAEHKjpjucklxBly-bkdZ4lAKAHxKcTDSQACCyoAAuPl0Uk4rWp3Lw5d1S0E",
+        "CAACAgIAAxkBAAEHKjxjuckoCXVxhSTIBtzXXlWsLTmKvAACeSoAAsFFyUncs5PojEhUwC0E",
+        "CAACAgIAAxkBAAEHKmJjudALk8SchSVF7h-XX0kKQ2fGIwAC5yMAAhz20EnzTgw_iUxmYi0E",
+        "CAACAgIAAxkBAAEHKmZjudBK_DOAjnAtgmhxWwbxOiM1gQACNSsAAhPXyEm-LYMjiOoldy0E",
+    ]
+    return random.choice(search_sticker)
 
 
 def find_whole_word(w):
